@@ -2,7 +2,11 @@
 
 namespace App\Filament\Resources\StandardCategories\Tables;
 
+use App\Filament\Resources\StandardCategories\Schemas\StandardCategoryForm;
+use App\Models\StandardCategory;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -10,9 +14,9 @@ use Filament\Tables\Table;
 
 class StandardCategoriesTable
 {
-    public static function configure(Table $table): Table
+    public static function configure(Table $table, bool $isModalTable = false): Table
     {
-        return $table
+        $table = $table
             ->columns([
                 TextColumn::make('code')
                     ->label('Kode')
@@ -38,10 +42,33 @@ class StandardCategoriesTable
             ->filters([
                 //
             ])
-            ->defaultSort('code')
-            ->recordActions([
+            ->defaultSort('code');
+
+        if ($isModalTable) {
+            $table
+                ->headerActions([
+                    CreateAction::make()
+                        ->label('Tambah Kategori')
+                        ->modalHeading('Tambah Kategori Standar')
+                        ->schema(StandardCategoryForm::components()),
+                ])
+                ->recordActions([
+                    EditAction::make()
+                        ->modalHeading('Ubah Kategori Standar')
+                        ->schema(StandardCategoryForm::components()),
+                    DeleteAction::make()
+                        ->hidden(fn (StandardCategory $record): bool => $record->qualityStandards()->exists()),
+                ]);
+        } else {
+            $table->recordActions([
                 EditAction::make(),
-            ])
+            ]);
+        }
+
+        return $table
+            ->checkIfRecordIsSelectableUsing(
+                fn (StandardCategory $record): bool => ! $record->qualityStandards()->exists(),
+            )
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

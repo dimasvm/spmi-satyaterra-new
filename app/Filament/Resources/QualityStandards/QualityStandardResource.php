@@ -5,6 +5,7 @@ namespace App\Filament\Resources\QualityStandards;
 use App\Filament\Resources\QualityStandards\Pages\CreateQualityStandard;
 use App\Filament\Resources\QualityStandards\Pages\EditQualityStandard;
 use App\Filament\Resources\QualityStandards\Pages\ListQualityStandards;
+use App\Filament\Resources\QualityStandards\RelationManagers\IndicatorsRelationManager;
 use App\Filament\Resources\QualityStandards\Schemas\QualityStandardForm;
 use App\Filament\Resources\QualityStandards\Tables\QualityStandardsTable;
 use App\Models\QualityStandard;
@@ -44,7 +45,7 @@ class QualityStandardResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            IndicatorsRelationManager::class,
         ];
     }
 

@@ -17,11 +17,11 @@ enum TargetOperator: string implements HasColor, HasLabel
     public function getLabel(): string|Htmlable|null
     {
         return match ($this) {
-            self::GreaterThanOrEqual => 'Lebih dari atau sama dengan',
-            self::LessThanOrEqual => 'Kurang dari atau sama dengan',
-            self::Equal => 'Sama dengan',
-            self::GreaterThan => 'Lebih dari',
-            self::LessThan => 'Kurang dari',
+            self::GreaterThanOrEqual => '>=',
+            self::LessThanOrEqual => '<=',
+            self::Equal => '=',
+            self::GreaterThan => '>',
+            self::LessThan => '<',
         };
     }
 

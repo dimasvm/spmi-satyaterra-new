@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\QualityStandards\Pages;
 
 use App\Filament\Resources\QualityStandards\QualityStandardResource;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Support\Colors\Color;
+use Filament\Support\Icons\Heroicon;
 
 class ListQualityStandards extends ListRecords
 {
@@ -13,7 +16,15 @@ class ListQualityStandards extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()->icon(Heroicon::Plus)->label('Tambah'),
+            Action::make('manageStandardCategories')
+                ->label('Kategori Standar')
+                ->icon(Heroicon::OutlinedTag)
+                ->color(Color::Zinc)
+                ->modalHeading('Kategori Standar')
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Tutup')
+                ->modalContent(view('filament.resources.quality-standards.pages.manage-standard-categories')),
         ];
     }
 }

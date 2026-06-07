@@ -3,9 +3,12 @@
 namespace App\Filament\Resources\QualityStandards\Tables;
 
 use App\Enums\QualityStandardStatus;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -16,18 +19,14 @@ class QualityStandardsTable
     {
         return $table
             ->columns([
-                TextColumn::make('code')
-                    ->label('Kode')
-                    ->searchable()
-                    ->sortable(),
                 TextColumn::make('name')
-                    ->label('Nama')
+                    ->label('Nama Standar')
                     ->searchable()
+                    ->description(fn ($record) => "$record->code ・ ".$record->category->name)
                     ->sortable(),
-                TextColumn::make('category.name')
-                    ->label('Kategori')
-                    ->searchable()
-                    ->sortable(),
+                TextColumn::make('indicators_count')
+                    ->label('Jumlah Indikator')
+                    ->counts('indicators'),
                 TextColumn::make('spmiPeriod.name')
                     ->label('Periode')
                     ->searchable()
@@ -43,10 +42,12 @@ class QualityStandardsTable
                 TextColumn::make('approved_at')
                     ->label('Disetujui Pada')
                     ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 TextColumn::make('approver.name')
                     ->label('Disetujui Oleh')
                     ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -70,11 +71,20 @@ class QualityStandardsTable
                     ->preload(),
                 SelectFilter::make('status')
                     ->label('Status')
+                    ->default(QualityStandardStatus::Active)
                     ->options(QualityStandardStatus::class),
             ])
             ->defaultSort('code')
             ->recordActions([
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->color('gray')
+                        ->icon(Heroicon::Eye)
+                        ->hiddenLabel(),
+                    EditAction::make()
+                        ->color('gray')
+                        ->hiddenLabel(),
+                ])->buttonGroup(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

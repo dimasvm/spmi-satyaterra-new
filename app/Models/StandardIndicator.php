@@ -39,6 +39,11 @@ class StandardIndicator extends Model
         return $this->belongsTo(QualityStandard::class);
     }
 
+    public function units()
+    {
+        return $this->belongsToMany(Unit::class, IndicatorUnitAssignment::class);
+    }
+
     public function assignments(): HasMany
     {
         return $this->hasMany(IndicatorUnitAssignment::class);

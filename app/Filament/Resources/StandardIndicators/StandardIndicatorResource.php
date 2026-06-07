@@ -21,7 +21,7 @@ class StandardIndicatorResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Penetapan';
 
     protected static ?int $navigationSort = 6;
 
@@ -30,8 +30,6 @@ class StandardIndicatorResource extends Resource
     protected static ?string $pluralModelLabel = 'Indikator Standar';
 
     protected static ?string $recordTitleAttribute = 'code';
-
-    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Schema $schema): Schema
     {

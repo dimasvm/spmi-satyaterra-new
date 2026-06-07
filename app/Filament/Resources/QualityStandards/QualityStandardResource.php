@@ -5,9 +5,11 @@ namespace App\Filament\Resources\QualityStandards;
 use App\Filament\Resources\QualityStandards\Pages\CreateQualityStandard;
 use App\Filament\Resources\QualityStandards\Pages\EditQualityStandard;
 use App\Filament\Resources\QualityStandards\Pages\ListQualityStandards;
+use App\Filament\Resources\QualityStandards\Pages\ViewQualityStandard;
 use App\Filament\Resources\QualityStandards\RelationManagers\IndicatorsRelationManager;
 use App\Filament\Resources\QualityStandards\Schemas\QualityStandardForm;
 use App\Filament\Resources\QualityStandards\Tables\QualityStandardsTable;
+use App\Filament\Resources\QualityStandards\Widgets\QualityStandardOverview;
 use App\Models\QualityStandard;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -22,7 +24,7 @@ class QualityStandardResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Penetapan';
 
     protected static ?int $navigationSort = 5;
 
@@ -49,12 +51,20 @@ class QualityStandardResource extends Resource
         ];
     }
 
+    public static function getWidgets(): array
+    {
+        return [
+            QualityStandardOverview::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ListQualityStandards::route('/'),
             'create' => CreateQualityStandard::route('/create'),
             'edit' => EditQualityStandard::route('/{record}/edit'),
+            'view' => ViewQualityStandard::route('/{record}/view'),
         ];
     }
 }

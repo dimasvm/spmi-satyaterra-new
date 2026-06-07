@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UnitType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,6 +41,11 @@ class Unit extends Model
         return $this->hasMany(User::class);
     }
 
+    public function indicators()
+    {
+        return $this->belongsToMany(StandardIndicator::class, IndicatorUnitAssignment::class);
+    }
+
     public function indicatorAssignments(): HasMany
     {
         return $this->hasMany(IndicatorUnitAssignment::class);
@@ -48,5 +54,15 @@ class Unit extends Model
     public function amiAudits(): HasMany
     {
         return $this->hasMany(AmiAudit::class, 'auditee_unit_id');
+    }
+
+    public function scopeActive(Builder $query)
+    {
+        $query->where('is_active', true);
+    }
+
+    public function scopenonActive(Builder $query)
+    {
+        $query->where('is_active', false);
     }
 }

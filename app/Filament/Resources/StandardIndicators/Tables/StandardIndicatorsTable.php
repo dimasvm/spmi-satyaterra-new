@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\StandardIndicators\Tables;
 
+use App\Actions\AssignIndicatorsToUnits;
+use App\Enums\IndicatorAssignmentPriority;
 use App\Enums\IndicatorAssignmentStatus;
 use App\Enums\StandardIndicatorType;
 use App\Enums\TargetOperator;
-use App\Models\IndicatorUnitAssignment;
 use App\Models\SpmiPeriod;
 use App\Models\StandardIndicator;
 use App\Models\Unit;
@@ -16,13 +17,19 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\PaginationMode;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -31,30 +38,16 @@ class StandardIndicatorsTable
     public static function configure(Table $table, bool $isRelationManager = false): Table
     {
         $columns = [
-            TextColumn::make('code')
-                ->label('Kode')
-                ->searchable()
-                ->sortable(),
             TextColumn::make('statement')
                 ->label('Pernyataan')
-                ->limit(70)
-                ->searchable()
-                ->toggleable(),
-            TextColumn::make('indicator_type')
-                ->label('Jenis')
-                ->badge()
+                ->description(fn ($record) => $record->code, 'above')
+                ->description(fn ($record) => $record->qualityStandard->name)
+                ->wrap()
                 ->searchable(),
             TextColumn::make('target_value')
                 ->label('Target')
-                ->numeric()
-                ->sortable(),
-            TextColumn::make('target_operator')
-                ->label('Operator')
                 ->badge()
-                ->searchable(),
-            TextColumn::make('target_unit')
-                ->label('Satuan')
-                ->searchable(),
+                ->formatStateUsing(fn ($record, $state) => $record->target_operator->value . ' ' . (float) $state . ' ' . $record->target_unit),
             TextColumn::make('weight')
                 ->label('Bobot')
                 ->numeric()
@@ -62,6 +55,11 @@ class StandardIndicatorsTable
             IconColumn::make('evidence_required')
                 ->label('Bukti Wajib')
                 ->boolean(),
+            TextColumn::make('assignments.unit.name')
+                ->bulleted()
+                ->limitList(2)
+                ->expandableLimitedList()
+                ->label('Unit Terkait'),
             TextColumn::make('created_at')
                 ->dateTime()
                 ->sortable()
@@ -71,15 +69,6 @@ class StandardIndicatorsTable
                 ->sortable()
                 ->toggleable(isToggledHiddenByDefault: true),
         ];
-
-        if (! $isRelationManager) {
-            array_splice($columns, 1, 0, [
-                TextColumn::make('qualityStandard.name')
-                    ->label('Standar')
-                    ->searchable()
-                    ->sortable(),
-            ]);
-        }
 
         $filters = [
             SelectFilter::make('indicator_type')
@@ -106,6 +95,14 @@ class StandardIndicatorsTable
         $table = $table
             ->columns($columns)
             ->filters($filters)
+            ->groups([
+                Group::make('qualityStandard.name')
+                    ->label('Standar Mutu')
+                    ->collapsible()
+                    ->titlePrefixedWithLabel(false)
+            ])
+            ->defaultGroup('qualityStandard.name')
+            ->paginationMode(PaginationMode::Cursor)
             ->defaultSort('code');
 
         if ($isRelationManager) {
@@ -135,16 +132,28 @@ class StandardIndicatorsTable
             ]);
     }
 
-    private static function assignToUnitsAction(): Action
+    public static function assignToUnitsAction(): Action
     {
         return Action::make('assignToUnits')
-            ->label('Tugaskan')
+            ->label('Assign')
+            ->button()
+            ->icon(Heroicon::Users)
             ->modalHeading('Tugaskan Indikator ke Unit')
             ->schema(static::assignmentSchema())
             ->action(function (array $data, StandardIndicator $record): void {
-                [$createdCount, $skippedCount] = static::createAssignments([$record], $data);
+                $result = app(AssignIndicatorsToUnits::class)->handle(
+                    indicators: [$record],
+                    unitIds: $data['unit_ids'],
+                    spmiPeriodId: $data['spmi_period_id'],
+                    primaryPicUnitId: $data['primary_pic_unit_id'] ?? null,
+                    dueDate: $data['due_date'] ?? null,
+                    status: $data['status'],
+                    priority: $data['priority'],
+                    notes: $data['notes'] ?? null,
+                    assignedBy: auth()->id(),
+                );
 
-                static::sendAssignmentNotification($createdCount, $skippedCount);
+                static::sendAssignmentNotification($result['created'], $result['skipped']);
             });
     }
 
@@ -154,10 +163,21 @@ class StandardIndicatorsTable
             ->label('Tugaskan ke Unit')
             ->modalHeading('Tugaskan Indikator Terpilih ke Unit')
             ->schema(static::assignmentSchema())
+            ->icon(Heroicon::Users)
             ->action(function (array $data, EloquentCollection $records): void {
-                [$createdCount, $skippedCount] = static::createAssignments($records, $data);
+                $result = app(AssignIndicatorsToUnits::class)->handle(
+                    indicators: $records,
+                    unitIds: $data['unit_ids'],
+                    spmiPeriodId: $data['spmi_period_id'],
+                    primaryPicUnitId: $data['primary_pic_unit_id'] ?? null,
+                    dueDate: $data['due_date'] ?? null,
+                    status: $data['status'],
+                    priority: $data['priority'],
+                    notes: $data['notes'] ?? null,
+                    assignedBy: auth()->id(),
+                );
 
-                static::sendAssignmentNotification($createdCount, $skippedCount);
+                static::sendAssignmentNotification($result['created'], $result['skipped']);
             })
             ->deselectRecordsAfterCompletion();
     }
@@ -165,73 +185,44 @@ class StandardIndicatorsTable
     private static function assignmentSchema(): array
     {
         return [
-            Select::make('unit_ids')
-                ->label('Unit')
-                ->options(fn (): array => Unit::query()
-                    ->where('is_active', true)
-                    ->orderBy('code')
-                    ->get()
-                    ->mapWithKeys(fn (Unit $unit): array => [
-                        $unit->id => "{$unit->code} - {$unit->name}",
-                    ])
-                    ->all())
-                ->multiple()
+            Grid::make()
+                ->schema([
+                    Select::make('spmi_period_id')
+                        ->label('Periode SPMI')
+                        ->options(fn () => SpmiPeriod::query()->pluck('name', 'id'))
+                        ->searchable()
+                        ->default(SpmiPeriod::active()->first()->id)
+                        ->preload()
+                        ->required(),
+                DatePicker::make('due_date')
+                    ->label('Batas Waktu Pengisian'),
+                ])
+                ->columnSpanFull(),
+            Grid::make(3)
+            ->schema([
+                Select::make('status')
+                    ->label('Status')
+                    ->options(IndicatorAssignmentStatus::class)
+                    ->default(IndicatorAssignmentStatus::Assigned->value)
+                    ->required(),
+                Select::make('priority')
+                    ->label('Prioritas')
+                    ->options(IndicatorAssignmentPriority::class)
+                    ->default(IndicatorAssignmentPriority::Normal->value)
+                    ->required(),
+            ])
+            ->columnSpanFull(),
+            CheckboxList::make('unit_ids')
+                ->label('Tugaskan Ke Unit')
+                ->options(Unit::query()->pluck('name', 'id'))
                 ->searchable()
-                ->preload()
-                ->required(),
-            Select::make('spmi_period_id')
-                ->label('Periode SPMI')
-                ->options(fn (): array => SpmiPeriod::query()
-                    ->orderByDesc('start_date')
-                    ->orderByDesc('id')
-                    ->pluck('name', 'id')
-                    ->all())
-                ->searchable()
-                ->preload()
-                ->required(),
-            DatePicker::make('due_date')
-                ->label('Batas Waktu'),
-            Select::make('status')
-                ->label('Status')
-                ->options(IndicatorAssignmentStatus::class)
-                ->default(IndicatorAssignmentStatus::Assigned->value)
-                ->required(),
+                ->required()
+                ->bulkToggleable()
+                ->columns(3),
+            Textarea::make('notes')
+                ->label('Catatan')
+                ->rows(3),
         ];
-    }
-
-    /**
-     * @param  iterable<int, StandardIndicator>  $indicators
-     * @param  array{unit_ids: array<int|string>, spmi_period_id: int|string, due_date?: string|null, status: string}  $data
-     * @return array{0: int, 1: int}
-     */
-    private static function createAssignments(iterable $indicators, array $data): array
-    {
-        $createdCount = 0;
-        $skippedCount = 0;
-
-        foreach ($indicators as $indicator) {
-            foreach ($data['unit_ids'] as $unitId) {
-                $assignment = IndicatorUnitAssignment::query()->firstOrCreate(
-                    [
-                        'standard_indicator_id' => $indicator->id,
-                        'unit_id' => $unitId,
-                        'spmi_period_id' => $data['spmi_period_id'],
-                    ],
-                    [
-                        'due_date' => $data['due_date'] ?? null,
-                        'status' => $data['status'],
-                    ],
-                );
-
-                if ($assignment->wasRecentlyCreated) {
-                    $createdCount++;
-                } else {
-                    $skippedCount++;
-                }
-            }
-        }
-
-        return [$createdCount, $skippedCount];
     }
 
     private static function sendAssignmentNotification(int $createdCount, int $skippedCount): void

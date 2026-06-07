@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\QualityStandards\Pages;
 
 use App\Filament\Resources\QualityStandards\QualityStandardResource;
+use App\Filament\Resources\QualityStandards\Widgets\QualityStandardOverview;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -25,6 +26,13 @@ class ListQualityStandards extends ListRecords
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel('Tutup')
                 ->modalContent(view('filament.resources.quality-standards.pages.manage-standard-categories')),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            QualityStandardOverview::class,
         ];
     }
 }

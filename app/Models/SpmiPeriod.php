@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SpmiPeriodStatus;
 use App\Enums\SpmiSemester;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -46,5 +47,11 @@ class SpmiPeriod extends Model
     public function qualityDocuments(): HasMany
     {
         return $this->hasMany(QualityDocument::class);
+    }
+
+    // -------------------- Scope ------------------------------
+    public function scopeActive(Builder $query)
+    {
+        $query->where('status', SpmiPeriodStatus::Active);
     }
 }

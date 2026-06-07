@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\QualityStandardStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,5 +54,16 @@ class QualityStandard extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(QualityDocument::class);
+    }
+
+    // Scope -----------------------------------------------
+    public function scopeActive(Builder $query)
+    {
+        $query->where('status', QualityStandardStatus::Active);
+    }
+
+    public function scopeNonactive(Builder $query)
+    {
+        $query->whereNot('status', QualityStandardStatus::Active);
     }
 }

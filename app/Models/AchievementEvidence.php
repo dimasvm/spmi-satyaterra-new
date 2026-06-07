@@ -11,6 +11,8 @@ class AchievementEvidence extends Model
 {
     use HasFactory;
 
+    protected $table = 'achievement_evidences';
+
     protected $fillable = [
         'indicator_achievement_id',
         'file_name',

@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\IndicatorAssignmentPriority;
 use App\Enums\IndicatorAssignmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Auth;
 
 class IndicatorUnitAssignment extends Model
 {
@@ -19,12 +21,47 @@ class IndicatorUnitAssignment extends Model
         'spmi_period_id',
         'due_date',
         'status',
+        'is_primary_pic',
+        'priority',
+        'notes',
+        'assigned_by',
+        'assigned_at',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'status' => IndicatorAssignmentStatus::class,
+        'is_primary_pic' => 'boolean',
+        'priority' => IndicatorAssignmentPriority::class,
+        'assigned_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (IndicatorUnitAssignment $assignment): void {
+            $assignment->events()->create([
+                'actor_id' => $assignment->assigned_by,
+                'event' => 'assigned',
+                'description' => $assignment->is_primary_pic
+                    ? 'Penugasan dibuat sebagai PIC utama.'
+                    : 'Penugasan dibuat sebagai unit terlibat.',
+                'occurred_at' => $assignment->assigned_at ?? now(),
+            ]);
+        });
+
+        static::updated(function (IndicatorUnitAssignment $assignment): void {
+            if (! $assignment->wasChanged('status')) {
+                return;
+            }
+
+            $assignment->events()->create([
+                'actor_id' => Auth::user()->id,
+                'event' => 'status_changed',
+                'description' => 'Status penugasan diubah menjadi '.$assignment->status->getLabel().'.',
+                'occurred_at' => now(),
+            ]);
+        });
+    }
 
     public function standardIndicator(): BelongsTo
     {
@@ -49,5 +86,15 @@ class IndicatorUnitAssignment extends Model
     public function latestAchievement(): HasOne
     {
         return $this->hasOne(IndicatorAchievement::class, 'assignment_id')->latestOfMany();
+    }
+
+    public function assignedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(IndicatorAssignmentEvent::class);
     }
 }

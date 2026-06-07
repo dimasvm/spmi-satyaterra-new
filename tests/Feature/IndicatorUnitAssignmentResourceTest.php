@@ -2,12 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Enums\IndicatorAssignmentPriority;
 use App\Enums\IndicatorAssignmentStatus;
 use App\Enums\QualityStandardStatus;
 use App\Enums\SpmiPeriodStatus;
 use App\Enums\StandardIndicatorType;
+use App\Filament\Resources\IndicatorUnitAssignments\Pages\AssignmentDetail;
+use App\Filament\Resources\IndicatorUnitAssignments\Pages\AssignmentMatrix;
 use App\Filament\Resources\IndicatorUnitAssignments\Pages\CreateIndicatorUnitAssignment;
+use App\Filament\Resources\IndicatorUnitAssignments\Pages\ListIndicatorUnitAssignments;
 use App\Filament\Resources\StandardIndicators\Pages\ListStandardIndicators;
+use App\Models\IndicatorAchievement;
+use App\Models\IndicatorAssignmentEvent;
 use App\Models\IndicatorUnitAssignment;
 use App\Models\QualityStandard;
 use App\Models\SpmiPeriod;
@@ -85,6 +91,225 @@ class IndicatorUnitAssignmentResourceTest extends TestCase
             ->assertHasFormErrors([
                 'spmi_period_id' => 'unique',
             ]);
+    }
+
+    public function test_custom_assignment_dashboard_renders_stats(): void
+    {
+        $indicator = $this->createIndicator('IKU-001');
+        $unit = $this->createUnit('UPM');
+        $period = $this->createSpmiPeriod();
+
+        IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $unit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+        ]);
+
+        Livewire::test(ListIndicatorUnitAssignments::class)
+            ->set('period', $period->id)
+            ->assertSee('Penugasan Indikator')
+            ->assertSee('IKU-001')
+            ->assertSee('UPM');
+    }
+
+    public function test_custom_assignment_dashboard_can_create_mass_assignment_with_timeline(): void
+    {
+        $indicator = $this->createIndicator('IKU-001');
+        $unit = $this->createUnit('UPM');
+        $period = $this->createSpmiPeriod();
+
+        Livewire::test(ListIndicatorUnitAssignments::class)
+            ->set('period', $period->id)
+            ->set('selectedIndicatorIds', [$indicator->id])
+            ->set('selectedUnitIds', [$unit->id])
+            ->set('primaryPicUnitId', $unit->id)
+            ->set('dueDate', '2026-06-30')
+            ->set('priority', 'high')
+            ->set('notes', 'Prioritas audit.')
+            ->call('assignSelectedIndicators')
+            ->assertNotified();
+
+        $this->assertDatabaseHas(IndicatorUnitAssignment::class, [
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $unit->id,
+            'spmi_period_id' => $period->id,
+            'is_primary_pic' => true,
+            'priority' => 'high',
+            'notes' => 'Prioritas audit.',
+        ]);
+        $this->assertDatabaseHas(IndicatorAssignmentEvent::class, [
+            'event' => 'assigned',
+        ]);
+    }
+
+    public function test_assignment_matrix_renders_indicator_unit_distribution(): void
+    {
+        $indicator = $this->createIndicator('IKU-001');
+        $unit = $this->createUnit('UPM');
+        $period = $this->createSpmiPeriod();
+
+        IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $unit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+            'is_primary_pic' => true,
+            'priority' => 'normal',
+        ]);
+
+        Livewire::test(AssignmentMatrix::class)
+            ->set('period', $period->id)
+            ->assertSee('Matriks Penugasan Indikator')
+            ->assertSee('IKU-001')
+            ->assertSee('UPM');
+    }
+
+    public function test_assignment_detail_can_record_reminder_event(): void
+    {
+        $indicator = $this->createIndicator('IKU-001');
+        $unit = $this->createUnit('UPM');
+        $period = $this->createSpmiPeriod();
+
+        IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $unit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+            'is_primary_pic' => true,
+            'priority' => 'normal',
+        ]);
+
+        Livewire::test(AssignmentDetail::class, ['indicator' => $indicator])
+            ->set('period', $period->id)
+            ->call('sendReminder')
+            ->assertNotified();
+
+        $this->assertDatabaseHas(IndicatorAssignmentEvent::class, [
+            'event' => 'reminder_sent',
+        ]);
+    }
+
+    public function test_assignment_detail_can_edit_assignment(): void
+    {
+        $indicator = $this->createIndicator('IKU-001');
+        $firstUnit = $this->createUnit('UPM');
+        $secondUnit = $this->createUnit('LPM');
+        $thirdUnit = $this->createUnit('PRODI');
+        $period = $this->createSpmiPeriod();
+
+        $firstAssignment = IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $firstUnit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+            'is_primary_pic' => true,
+            'priority' => 'normal',
+        ]);
+
+        $secondAssignment = IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $secondUnit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+            'is_primary_pic' => false,
+            'priority' => 'normal',
+        ]);
+
+        Livewire::test(AssignmentDetail::class, ['indicator' => $indicator])
+            ->set('period', $period->id)
+            ->call('openEditAssignmentModal', $secondAssignment->id)
+            ->set('editUnitId', $thirdUnit->id)
+            ->set('editPeriodId', $period->id)
+            ->set('editDueDate', '2026-07-15')
+            ->set('editStatus', IndicatorAssignmentStatus::InProgress->value)
+            ->set('editIsPrimaryPic', true)
+            ->set('editPriority', IndicatorAssignmentPriority::High->value)
+            ->set('editNotes', 'Diubah menjadi PIC utama.')
+            ->call('updateAssignment')
+            ->assertNotified();
+
+        $this->assertDatabaseHas(IndicatorUnitAssignment::class, [
+            'id' => $secondAssignment->id,
+            'unit_id' => $thirdUnit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-07-15 00:00:00',
+            'status' => IndicatorAssignmentStatus::InProgress->value,
+            'is_primary_pic' => true,
+            'priority' => IndicatorAssignmentPriority::High->value,
+            'notes' => 'Diubah menjadi PIC utama.',
+        ]);
+
+        $this->assertDatabaseHas(IndicatorUnitAssignment::class, [
+            'id' => $firstAssignment->id,
+            'is_primary_pic' => false,
+        ]);
+    }
+
+    public function test_assignment_detail_quick_action_opens_edit_assignment_modal(): void
+    {
+        $indicator = $this->createIndicator('IKU-001');
+        $unit = $this->createUnit('UPM');
+        $period = $this->createSpmiPeriod();
+
+        $assignment = IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $unit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+            'is_primary_pic' => true,
+            'priority' => IndicatorAssignmentPriority::Normal,
+        ]);
+
+        Livewire::test(AssignmentDetail::class, ['indicator' => $indicator])
+            ->set('period', $period->id)
+            ->call('openFirstAssignmentEditModal')
+            ->assertSet('isEditAssignmentModalOpen', true)
+            ->assertSet('editingAssignmentId', $assignment->id)
+            ->assertSet('editUnitId', $unit->id)
+            ->assertSee('Edit Penugasan');
+    }
+
+    public function test_assignment_detail_can_delete_assignment(): void
+    {
+        $indicator = $this->createIndicator('IKU-001');
+        $unit = $this->createUnit('UPM');
+        $period = $this->createSpmiPeriod();
+
+        $assignment = IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $unit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+            'is_primary_pic' => true,
+            'priority' => 'normal',
+        ]);
+
+        $achievement = IndicatorAchievement::query()->create([
+            'assignment_id' => $assignment->id,
+        ]);
+
+        Livewire::test(AssignmentDetail::class, ['indicator' => $indicator])
+            ->set('period', $period->id)
+            ->call('deleteAssignment', $assignment->id)
+            ->assertNotified();
+
+        $this->assertDatabaseMissing(IndicatorUnitAssignment::class, [
+            'id' => $assignment->id,
+        ]);
+        $this->assertDatabaseMissing(IndicatorAchievement::class, [
+            'id' => $achievement->id,
+        ]);
+        $this->assertDatabaseMissing(IndicatorAssignmentEvent::class, [
+            'indicator_unit_assignment_id' => $assignment->id,
+        ]);
     }
 
     public function test_it_can_assign_single_indicator_to_units_from_indicator_table(): void

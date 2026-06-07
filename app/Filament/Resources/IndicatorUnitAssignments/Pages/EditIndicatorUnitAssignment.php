@@ -4,6 +4,7 @@ namespace App\Filament\Resources\IndicatorUnitAssignments\Pages;
 
 use App\Filament\Resources\IndicatorUnitAssignments\IndicatorUnitAssignmentResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditIndicatorUnitAssignment extends EditRecord
@@ -13,6 +14,7 @@ class EditIndicatorUnitAssignment extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ViewAction::make(),
             DeleteAction::make(),
         ];
     }

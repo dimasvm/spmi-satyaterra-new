@@ -7,6 +7,7 @@ use App\Enums\SpmiSemester;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -58,6 +59,9 @@ class SpmiPeriodsTable
                     ->label('Status')
                     ->options(SpmiPeriodStatus::class),
             ])
+            ->emptyStateHeading('Belum ada periode SPMI')
+            ->emptyStateDescription('Tambahkan periode SPMI untuk mengatur standar, penugasan, capaian, dan validasi.')
+            ->emptyStateIcon(Heroicon::OutlinedCalendarDays)
             ->defaultSort('start_date', 'desc')
             ->recordActions([
                 EditAction::make(),

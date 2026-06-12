@@ -15,6 +15,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class IndicatorAchievementResource extends Resource
@@ -23,9 +25,64 @@ class IndicatorAchievementResource extends Resource
 
     protected static ?string $modelLabel = 'Capaian Indikator';
 
+    protected static ?string $pluralModelLabel = 'Capaian Indikator';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowTrendingUp;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pelaksanaan';
+    protected static string|UnitEnum|null $navigationGroup = 'SPMI';
+
+    protected static ?int $navigationSort = 5;
+
+    protected static ?string $navigationLabel = 'Capaian Indikator';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm() || $user?->isUnitPic());
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()
+            ->with([
+                'assignment.spmiPeriod',
+                'assignment.standardIndicator.qualityStandard',
+                'assignment.unit',
+                'evidences.uploadedBy',
+                'latestReview.reviewer',
+                'reviews.reviewer',
+                'submittedBy',
+            ]);
+
+        $user = auth()->user();
+
+        if ($user === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->forUser($user);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return (bool) auth()->user()?->can('viewAny', IndicatorAchievement::class);
+    }
+
+    public static function canCreate(): bool
+    {
+        return (bool) auth()->user()?->can('create', IndicatorAchievement::class);
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return static::can('update', $record);
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return static::can('delete', $record);
+    }
 
     public static function form(Schema $schema): Schema
     {

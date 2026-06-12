@@ -1,75 +1,69 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\QualityStandard;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use App\Models\User;
 
 class QualityStandardPolicy
 {
-    use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('ViewAny:QualityStandard');
+        return $user->can('quality-standards.view');
     }
 
-    public function view(AuthUser $authUser, QualityStandard $qualityStandard): bool
+    public function view(User $user, QualityStandard $qualityStandard): bool
     {
-        return $authUser->can('View:QualityStandard');
+        return $user->can('quality-standards.view');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Create:QualityStandard');
+        return $user->can('quality-standards.create') && $user->isAdminLpm();
     }
 
-    public function update(AuthUser $authUser, QualityStandard $qualityStandard): bool
+    public function update(User $user, QualityStandard $qualityStandard): bool
     {
-        return $authUser->can('Update:QualityStandard');
+        return $user->can('quality-standards.update') && $user->isAdminLpm();
     }
 
-    public function delete(AuthUser $authUser, QualityStandard $qualityStandard): bool
+    public function delete(User $user, QualityStandard $qualityStandard): bool
     {
-        return $authUser->can('Delete:QualityStandard');
+        return $user->can('quality-standards.delete') && $user->isAdminLpm();
     }
 
-    public function deleteAny(AuthUser $authUser): bool
+    public function deleteAny(User $user): bool
     {
-        return $authUser->can('DeleteAny:QualityStandard');
+        return $user->can('quality-standards.delete') && $user->isAdminLpm();
     }
 
-    public function restore(AuthUser $authUser, QualityStandard $qualityStandard): bool
+    public function restore(User $user, QualityStandard $qualityStandard): bool
     {
-        return $authUser->can('Restore:QualityStandard');
+        return $user->can('quality-standards.update');
     }
 
-    public function forceDelete(AuthUser $authUser, QualityStandard $qualityStandard): bool
+    public function forceDelete(User $user, QualityStandard $qualityStandard): bool
     {
-        return $authUser->can('ForceDelete:QualityStandard');
+        return $user->can('quality-standards.delete');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('ForceDeleteAny:QualityStandard');
+        return $user->can('quality-standards.delete');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:QualityStandard');
+        return $user->can('quality-standards.update');
     }
 
-    public function replicate(AuthUser $authUser, QualityStandard $qualityStandard): bool
+    public function replicate(User $user, QualityStandard $qualityStandard): bool
     {
-        return $authUser->can('Replicate:QualityStandard');
+        return $user->can('quality-standards.create');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function reorder(User $user): bool
     {
-        return $authUser->can('Reorder:QualityStandard');
+        return $user->can('quality-standards.update');
     }
-
 }

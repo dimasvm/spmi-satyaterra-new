@@ -9,6 +9,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -42,6 +43,9 @@ class StandardCategoriesTable
             ->filters([
                 //
             ])
+            ->emptyStateHeading('Belum ada kategori standar')
+            ->emptyStateDescription('Tambahkan kategori untuk mengelompokkan standar mutu kampus.')
+            ->emptyStateIcon(Heroicon::OutlinedTag)
             ->defaultSort('code');
 
         if ($isModalTable) {

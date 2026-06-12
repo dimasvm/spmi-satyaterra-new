@@ -4,10 +4,10 @@ namespace App\Filament\Resources\IndicatorUnitAssignments\Tables;
 
 use App\Models\IndicatorUnitAssignment;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
@@ -26,7 +26,16 @@ class IndicatorUnitAssignmentsTable
                     ->label('Indikator')
                     ->description(fn ($record) => $record->standardIndicator->qualityStandard->name),
                 TextColumn::make('unit.name')
-                    ->label('Ke Unit')
+                    ->label('Ke Unit'),
+                TextColumn::make('spmiPeriod.name')
+                    ->label('Periode'),
+                TextColumn::make('status')
+                    ->badge(),
+                TextColumn::make('assigned_at')
+                    ->label('Mulai Penugasan')
+                    ->date('d M Y H:i'),
+                TextColumn::make('notes')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->groups([
                 Group::make('standardIndicator.statement')
@@ -56,6 +65,9 @@ class IndicatorUnitAssignmentsTable
                     ->native(false),
             ], layout: FiltersLayout::AboveContent)
             ->deferFilters(false)
+            ->emptyStateHeading('Belum ada penugasan indikator')
+            ->emptyStateDescription('Tugaskan indikator standar ke unit agar unit dapat mengisi capaian.')
+            ->emptyStateIcon(Heroicon::UserPlus)
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

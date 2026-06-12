@@ -66,6 +66,9 @@ class UsersTable
                 TernaryFilter::make('is_active')
                     ->label('Aktif'),
             ])
+            ->emptyStateHeading('Belum ada user')
+            ->emptyStateDescription('Tambahkan pengguna dan hubungkan dengan unit serta role yang sesuai.')
+            ->emptyStateIcon(Heroicon::OutlinedUsers)
             ->defaultSort('name')
             ->recordActions([
                 Action::make('impersonate')

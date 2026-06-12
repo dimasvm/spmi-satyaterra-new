@@ -74,6 +74,9 @@ class QualityStandardsTable
                     ->default(QualityStandardStatus::Active)
                     ->options(QualityStandardStatus::class),
             ])
+            ->emptyStateHeading('Belum ada standar mutu')
+            ->emptyStateDescription('Tambahkan standar mutu dan indikatornya untuk periode SPMI.')
+            ->emptyStateIcon(Heroicon::OutlinedDocumentText)
             ->defaultSort('code')
             ->recordActions([
                 ActionGroup::make([

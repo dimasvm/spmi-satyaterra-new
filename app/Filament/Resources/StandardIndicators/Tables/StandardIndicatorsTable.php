@@ -47,7 +47,7 @@ class StandardIndicatorsTable
             TextColumn::make('target_value')
                 ->label('Target')
                 ->badge()
-                ->formatStateUsing(fn ($record, $state) => $record->target_operator->value . ' ' . (float) $state . ' ' . $record->target_unit),
+                ->formatStateUsing(fn ($record, $state) => $record->target_operator->value.' '.(float) $state.' '.$record->target_unit),
             TextColumn::make('weight')
                 ->label('Bobot')
                 ->numeric()
@@ -55,7 +55,13 @@ class StandardIndicatorsTable
             IconColumn::make('evidence_required')
                 ->label('Bukti Wajib')
                 ->boolean(),
-            TextColumn::make('assignments.unit.name')
+            TextColumn::make('assigned_units')
+                ->state(fn (StandardIndicator $record): array => $record->assignments
+                    ->map(fn ($assignment): ?string => $assignment->unit?->name)
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all())
                 ->bulleted()
                 ->limitList(2)
                 ->expandableLimitedList()
@@ -99,10 +105,13 @@ class StandardIndicatorsTable
                 Group::make('qualityStandard.name')
                     ->label('Standar Mutu')
                     ->collapsible()
-                    ->titlePrefixedWithLabel(false)
+                    ->titlePrefixedWithLabel(false),
             ])
+            ->emptyStateHeading('Belum ada indikator standar')
+            ->emptyStateDescription('Tambahkan indikator agar dapat ditugaskan ke unit dan diukur capaiannya.')
+            ->emptyStateIcon(Heroicon::OutlinedClipboardDocumentList)
             ->defaultGroup('qualityStandard.name')
-            ->paginationMode(PaginationMode::Cursor)
+            ->paginationMode(PaginationMode::Default)
             ->defaultSort('code');
 
         if ($isRelationManager) {
@@ -135,7 +144,7 @@ class StandardIndicatorsTable
     public static function assignToUnitsAction(): Action
     {
         return Action::make('assignToUnits')
-            ->label('Assign')
+            ->label('Tugaskan')
             ->button()
             ->icon(Heroicon::Users)
             ->modalHeading('Tugaskan Indikator ke Unit')
@@ -182,7 +191,7 @@ class StandardIndicatorsTable
             ->deselectRecordsAfterCompletion();
     }
 
-    private static function assignmentSchema(): array
+    public static function assignmentSchema(): array
     {
         return [
             Grid::make()
@@ -191,27 +200,27 @@ class StandardIndicatorsTable
                         ->label('Periode SPMI')
                         ->options(fn () => SpmiPeriod::query()->pluck('name', 'id'))
                         ->searchable()
-                        ->default(SpmiPeriod::active()->first()->id)
+                        ->default(fn (): ?int => SpmiPeriod::active()->value('id'))
                         ->preload()
                         ->required(),
-                DatePicker::make('due_date')
-                    ->label('Batas Waktu Pengisian'),
+                    DatePicker::make('due_date')
+                        ->label('Batas Waktu Pengisian'),
                 ])
                 ->columnSpanFull(),
             Grid::make(3)
-            ->schema([
-                Select::make('status')
-                    ->label('Status')
-                    ->options(IndicatorAssignmentStatus::class)
-                    ->default(IndicatorAssignmentStatus::Assigned->value)
-                    ->required(),
-                Select::make('priority')
-                    ->label('Prioritas')
-                    ->options(IndicatorAssignmentPriority::class)
-                    ->default(IndicatorAssignmentPriority::Normal->value)
-                    ->required(),
-            ])
-            ->columnSpanFull(),
+                ->schema([
+                    Select::make('status')
+                        ->label('Status')
+                        ->options(IndicatorAssignmentStatus::class)
+                        ->default(IndicatorAssignmentStatus::Assigned->value)
+                        ->required(),
+                    Select::make('priority')
+                        ->label('Prioritas')
+                        ->options(IndicatorAssignmentPriority::class)
+                        ->default(IndicatorAssignmentPriority::Normal->value)
+                        ->required(),
+                ])
+                ->columnSpanFull(),
             CheckboxList::make('unit_ids')
                 ->label('Tugaskan Ke Unit')
                 ->options(Unit::query()->pluck('name', 'id'))

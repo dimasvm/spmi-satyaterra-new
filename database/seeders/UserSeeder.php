@@ -5,88 +5,76 @@ namespace Database\Seeders;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    private const PASSWORD = '123456';
+
     /**
-     * Seed the initial administrator user.
+     * Seed demo users for every SPMI role.
      */
     public function run(): void
     {
-        $this->createSuperAdmin();
+        $units = Unit::query()->orderBy('code')->get()->keyBy('code');
+        $lpmUnitId = $units->get('LPM')?->id;
 
-        $this->createAdminLpm();
+        $this->createUser('superadmin@spmi.test', $lpmUnitId, 'Super Admin SPMI', 'super_admin');
 
-        $this->createUnitPic();
+        foreach (range(1, 3) as $number) {
+            $this->createUser(
+                email: "admin.lpm{$number}@spmi.test",
+                unitId: $lpmUnitId,
+                name: "Admin LPM {$number}",
+                role: 'admin_lpm',
+            );
+        }
+
+        foreach (range(1, 2) as $number) {
+            $this->createUser(
+                email: "pimpinan{$number}@spmi.test",
+                unitId: null,
+                name: "Pimpinan {$number}",
+                role: 'pimpinan',
+            );
+        }
+
+        foreach (range(1, 5) as $number) {
+            $this->createUser(
+                email: "auditor{$number}@spmi.test",
+                unitId: $lpmUnitId,
+                name: "Auditor AMI {$number}",
+                role: 'auditor',
+            );
+        }
+
+        foreach ($units as $unit) {
+            $this->createUser(
+                email: 'pic.'.strtolower($unit->code).'@spmi.test',
+                unitId: $unit->id,
+                name: 'PIC '.$unit->name,
+                role: 'unit_pic',
+            );
+        }
+
+        $this->createUser('viewer@spmi.test', null, 'Viewer SPMI', 'viewer');
     }
 
-    private function createSuperAdmin()
+    private function createUser(string $email, ?int $unitId, string $name, string $role): User
     {
-        $lpm = Unit::where('code', 'LPM')->first();
-
-        $admin = User::updateOrCreate(
-            ['email' => 'dimasvm@gmail.com'],
+        $user = User::updateOrCreate(
+            ['email' => $email],
             [
-                'unit_id' => $lpm?->id,
-                'name' => 'Dimas Maulana',
-                'password' => Hash::make('123456'),
+                'unit_id' => $unitId,
+                'name' => $name,
+                'password' => Hash::make(self::PASSWORD),
                 'is_active' => true,
+                'email_verified_at' => now(),
             ],
         );
 
-        $admin->forceFill([
-            'email_verified_at' => now(),
-        ])->save();
+        $user->syncRoles([$role]);
 
-        $admin->syncRoles(['super_admin']);
-    }
-
-    private function createAdminLpm()
-    {
-        $user1 = $this->createUser(
-            'shaleh@satyaterrabhinneka.com',
-            Unit::where('code', 'LPM')->first()?->id,
-            'Shaleh',
-            Hash::make(123456),
-            true,
-            now()
-        );
-
-        $user1->syncRoles(['admin_lpm']);
-    }
-
-    private function createUnitPic()
-    {
-        $user1 = $this->createUser(
-            'teknikinformatika@satyaterrabhinneka.com',
-            Unit::where('code', 'TI')->first()?->id,
-            'Teguh',
-            Hash::make(123456),
-            true,
-            now()
-        );
-
-        $user1->syncRoles(['unit_pic']);
-    }
-
-    private function createUser(
-        string $email,
-        ?int $unit_id,
-        string $name,
-        string $password,
-        bool $is_active = true,
-        ?Carbon $email_verified_at = null
-    )
-    {
-        return User::create([
-            'email' => $email,
-            'unit_id' => $unit_id,
-            'name' => $name,
-            'password' => $password,
-            'is_active' => $is_active,
-            'email_verified_at' => $email_verified_at ?? now()
-        ]);
+        return $user;
     }
 }

@@ -2,12 +2,11 @@
 
 namespace App\Providers\Filament;
 
-use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use App\Filament\Pages\Dashboard;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -59,20 +58,18 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->plugins([
-                FilamentShieldPlugin::make()
-                    ->navigationGroup('Master Data'),
-            ])
             ->navigationGroups([
-                'Penetapan',
-                'Pelaksanaan',
-                'Evaluasi',
-                'Pengendalian',
-                'Peningkatan'
+                'Master Data',
+                'SPMI',
+                'AMI',
+                'Dokumen Mutu',
+                'Laporan',
+                'Pengaturan',
             ])
             ->spa()
+            // ->topNavigation()
             ->sidebarCollapsibleOnDesktop()
-            ->maxContentWidth(Width::Full)
+            ->maxContentWidth(Width::Container)
             ->databaseNotifications()
             ->databaseTransactions()
             ->readOnlyRelationManagersOnResourceViewPagesByDefault(false)

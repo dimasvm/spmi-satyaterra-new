@@ -25,11 +25,20 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    protected static ?string $navigationLabel = 'User';
+
     protected static ?string $modelLabel = 'Pengguna';
 
     protected static ?string $pluralModelLabel = 'Pengguna';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
+    }
 
     public static function form(Schema $schema): Schema
     {

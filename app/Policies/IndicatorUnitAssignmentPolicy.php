@@ -1,75 +1,70 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\IndicatorUnitAssignment;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use App\Models\User;
 
 class IndicatorUnitAssignmentPolicy
 {
-    use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('ViewAny:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.view');
     }
 
-    public function view(AuthUser $authUser, IndicatorUnitAssignment $indicatorUnitAssignment): bool
+    public function view(User $user, IndicatorUnitAssignment $indicatorUnitAssignment): bool
     {
-        return $authUser->can('View:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.view')
+            && ($user->isAdminLpm() || $user->isPimpinan() || $user->canAccessUnit($indicatorUnitAssignment->unit_id));
     }
 
-    public function create(AuthUser $authUser): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Create:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.create') && $user->isAdminLpm();
     }
 
-    public function update(AuthUser $authUser, IndicatorUnitAssignment $indicatorUnitAssignment): bool
+    public function update(User $user, IndicatorUnitAssignment $indicatorUnitAssignment): bool
     {
-        return $authUser->can('Update:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.update') && $user->isAdminLpm();
     }
 
-    public function delete(AuthUser $authUser, IndicatorUnitAssignment $indicatorUnitAssignment): bool
+    public function delete(User $user, IndicatorUnitAssignment $indicatorUnitAssignment): bool
     {
-        return $authUser->can('Delete:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.delete') && $user->isAdminLpm();
     }
 
-    public function deleteAny(AuthUser $authUser): bool
+    public function deleteAny(User $user): bool
     {
-        return $authUser->can('DeleteAny:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.delete') && $user->isAdminLpm();
     }
 
-    public function restore(AuthUser $authUser, IndicatorUnitAssignment $indicatorUnitAssignment): bool
+    public function restore(User $user, IndicatorUnitAssignment $indicatorUnitAssignment): bool
     {
-        return $authUser->can('Restore:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.update');
     }
 
-    public function forceDelete(AuthUser $authUser, IndicatorUnitAssignment $indicatorUnitAssignment): bool
+    public function forceDelete(User $user, IndicatorUnitAssignment $indicatorUnitAssignment): bool
     {
-        return $authUser->can('ForceDelete:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.delete');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('ForceDeleteAny:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.delete');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.update');
     }
 
-    public function replicate(AuthUser $authUser, IndicatorUnitAssignment $indicatorUnitAssignment): bool
+    public function replicate(User $user, IndicatorUnitAssignment $indicatorUnitAssignment): bool
     {
-        return $authUser->can('Replicate:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.create');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function reorder(User $user): bool
     {
-        return $authUser->can('Reorder:IndicatorUnitAssignment');
+        return $user->can('indicator-assignments.update');
     }
-
 }

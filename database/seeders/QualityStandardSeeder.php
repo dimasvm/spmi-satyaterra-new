@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\QualityStandardStatus;
 use App\Models\QualityStandard;
 use App\Models\SpmiPeriod;
 use App\Models\StandardCategory;
@@ -16,7 +17,7 @@ class QualityStandardSeeder extends Seeder
     public function run(): void
     {
         $period = SpmiPeriod::where('status', 'active')->first();
-        $approver = User::role('super_admin')->first();
+        $approver = User::role('admin_lpm')->first() ?? User::role('super_admin')->first();
 
         $standards = [
             [
@@ -32,16 +33,52 @@ class QualityStandardSeeder extends Seeder
                 'description' => 'Setiap program studi melaksanakan proses pembelajaran yang interaktif, holistik, integratif, saintifik, kontekstual, tematik, efektif, kolaboratif, dan berpusat pada mahasiswa.',
             ],
             [
+                'category_code' => 'PDD',
+                'code' => 'PDD-03',
+                'name' => 'Standar Penilaian Pembelajaran',
+                'description' => 'Setiap program studi melaksanakan penilaian pembelajaran yang transparan, objektif, akuntabel, dan terdokumentasi.',
+            ],
+            [
                 'category_code' => 'PNL',
                 'code' => 'PNL-01',
                 'name' => 'Standar Hasil Penelitian',
                 'description' => 'Setiap dosen menghasilkan luaran penelitian yang relevan dengan peta jalan penelitian institusi dan kebutuhan masyarakat.',
             ],
             [
+                'category_code' => 'PNL',
+                'code' => 'PNL-02',
+                'name' => 'Standar Proses Penelitian',
+                'description' => 'Setiap kegiatan penelitian direncanakan, dilaksanakan, dipantau, dan dievaluasi sesuai peta jalan penelitian.',
+            ],
+            [
                 'category_code' => 'PKM',
                 'code' => 'PKM-01',
                 'name' => 'Standar Hasil Pengabdian kepada Masyarakat',
                 'description' => 'Kegiatan pengabdian kepada masyarakat menghasilkan manfaat terukur bagi mitra dan terdokumentasi dalam laporan kegiatan.',
+            ],
+            [
+                'category_code' => 'PKM',
+                'code' => 'PKM-02',
+                'name' => 'Standar Proses Pengabdian kepada Masyarakat',
+                'description' => 'Kegiatan pengabdian kepada masyarakat dilaksanakan berdasarkan kebutuhan mitra, kompetensi pelaksana, dan rencana kegiatan yang terukur.',
+            ],
+            [
+                'category_code' => 'TKP',
+                'code' => 'TKP-01',
+                'name' => 'Standar Tata Pamong dan Tata Kelola',
+                'description' => 'Unit kerja menerapkan tata pamong yang kredibel, transparan, akuntabel, bertanggung jawab, dan adil.',
+            ],
+            [
+                'category_code' => 'SDM',
+                'code' => 'SDM-01',
+                'name' => 'Standar Dosen dan Tenaga Kependidikan',
+                'description' => 'Unit memastikan kecukupan, kualifikasi, kompetensi, dan pengembangan dosen serta tenaga kependidikan.',
+            ],
+            [
+                'category_code' => 'SAR',
+                'code' => 'SAR-01',
+                'name' => 'Standar Sarana dan Prasarana',
+                'description' => 'Unit menyediakan sarana dan prasarana yang layak, aman, mudah diakses, dan mendukung tridharma perguruan tinggi.',
             ],
         ];
 
@@ -61,7 +98,7 @@ class QualityStandardSeeder extends Seeder
                     'standard_category_id' => $category->id,
                     'name' => $standard['name'],
                     'description' => $standard['description'],
-                    'status' => 'active',
+                    'status' => QualityStandardStatus::Active->value,
                     'version' => 1,
                     'approved_at' => now(),
                     'approved_by' => $approver?->id,

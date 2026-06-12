@@ -8,6 +8,7 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum AchievementReviewStatus: string implements HasColor, HasLabel
 {
+    case Pending = 'pending';
     case Validated = 'validated';
     case Returned = 'returned';
     case Rejected = 'rejected';
@@ -15,6 +16,7 @@ enum AchievementReviewStatus: string implements HasColor, HasLabel
     public function getLabel(): string|Htmlable|null
     {
         return match ($this) {
+            self::Pending => 'Menunggu Review',
             self::Validated => 'Tervalidasi',
             self::Returned => 'Perlu Perbaikan',
             self::Rejected => 'Ditolak',
@@ -24,6 +26,7 @@ enum AchievementReviewStatus: string implements HasColor, HasLabel
     public function getColor(): array|string|null
     {
         return match ($this) {
+            self::Pending => 'warning',
             self::Validated => 'success',
             self::Returned => 'warning',
             self::Rejected => 'danger',

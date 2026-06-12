@@ -16,7 +16,7 @@ enum SubmissionStatus: string implements HasColor, HasLabel
     public function getLabel(): string|Htmlable|null
     {
         return match ($this) {
-            self::Draft => 'Draf',
+            self::Draft => 'Draft',
             self::Submitted => 'Dikirim',
             self::Returned => 'Dikembalikan',
             self::Validated => 'Tervalidasi',

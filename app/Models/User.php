@@ -115,4 +115,56 @@ class User extends Authenticatable implements FilamentUser
     {
         return true;
     }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
+    public function isAdminLpm(): bool
+    {
+        return $this->hasRole('admin_lpm');
+    }
+
+    public function isPimpinan(): bool
+    {
+        return $this->hasRole('pimpinan');
+    }
+
+    public function isUnitPic(): bool
+    {
+        return $this->hasRole('unit_pic');
+    }
+
+    public function isAuditor(): bool
+    {
+        return $this->hasRole('auditor');
+    }
+
+    public function canAccessUnit(int|string|null $unitId): bool
+    {
+        if ($this->isSuperAdmin() || $this->isAdminLpm() || $this->isPimpinan()) {
+            return true;
+        }
+
+        return $this->isUnitPic()
+            && $this->unit_id !== null
+            && (int) $this->unit_id === (int) $unitId;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function assignedAmiAuditIds(): array
+    {
+        return $this->amiAuditorAssignments()
+            ->pluck('ami_audit_id')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->all();
+    }
+
+    public function canManageOperationalData(): bool
+    {
+        return $this->isSuperAdmin() || $this->isAdminLpm();
+    }
 }

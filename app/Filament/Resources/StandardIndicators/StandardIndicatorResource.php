@@ -13,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class StandardIndicatorResource extends Resource
@@ -21,15 +23,50 @@ class StandardIndicatorResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Penetapan';
+    protected static string|UnitEnum|null $navigationGroup = 'SPMI';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $navigationLabel = 'Indikator Standar';
 
     protected static ?string $modelLabel = 'Indikator Standar';
 
     protected static ?string $pluralModelLabel = 'Indikator Standar';
 
     protected static ?string $recordTitleAttribute = 'code';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['assignments.unit', 'qualityStandard.category']);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return (bool) auth()->user()?->can('viewAny', StandardIndicator::class);
+    }
+
+    public static function canCreate(): bool
+    {
+        return (bool) auth()->user()?->can('create', StandardIndicator::class);
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return static::can('update', $record);
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return static::can('delete', $record);
+    }
 
     public static function form(Schema $schema): Schema
     {

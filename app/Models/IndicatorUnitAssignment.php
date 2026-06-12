@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\IndicatorAssignmentPriority;
 use App\Enums\IndicatorAssignmentStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -96,5 +97,37 @@ class IndicatorUnitAssignment extends Model
     public function events(): HasMany
     {
         return $this->hasMany(IndicatorAssignmentEvent::class);
+    }
+
+    public function scopeForUser(Builder $query, User $user): Builder
+    {
+        if ($user->isSuperAdmin() || $user->isAdminLpm() || $user->isPimpinan()) {
+            return $query;
+        }
+
+        if ($user->isUnitPic() && $user->unit_id !== null) {
+            return $query->where('unit_id', $user->unit_id);
+        }
+
+        if ($user->isAuditor()) {
+            return $query->whereIn(
+                'unit_id',
+                AmiAudit::query()
+                    ->select('auditee_unit_id')
+                    ->forUser($user),
+            );
+        }
+
+        return $query->whereRaw('1 = 0');
+    }
+
+    public function scopeForUnit(Builder $query, int|string|null $unitId): Builder
+    {
+        return $query->where('unit_id', $unitId);
+    }
+
+    public function scopeForActivePeriod(Builder $query): Builder
+    {
+        return $query->whereHas('spmiPeriod', fn (Builder $periodQuery): Builder => $periodQuery->active());
     }
 }

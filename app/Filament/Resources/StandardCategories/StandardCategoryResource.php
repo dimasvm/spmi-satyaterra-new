@@ -23,15 +23,23 @@ class StandardCategoryResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Master Data';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $navigationLabel = 'Kategori Standar';
 
     protected static ?string $modelLabel = 'Kategori Standar';
 
     protected static ?string $pluralModelLabel = 'Kategori Standar';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+        // $user = auth()->user();
+
+        // return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
+    }
 
     public static function form(Schema $schema): Schema
     {

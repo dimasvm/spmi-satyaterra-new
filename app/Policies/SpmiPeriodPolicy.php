@@ -1,75 +1,69 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\SpmiPeriod;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use App\Models\User;
 
 class SpmiPeriodPolicy
 {
-    use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('ViewAny:SpmiPeriod');
+        return $user->can('spmi-periods.view');
     }
 
-    public function view(AuthUser $authUser, SpmiPeriod $spmiPeriod): bool
+    public function view(User $user, SpmiPeriod $spmiPeriod): bool
     {
-        return $authUser->can('View:SpmiPeriod');
+        return $user->can('spmi-periods.view');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Create:SpmiPeriod');
+        return $user->can('spmi-periods.create') && $user->isAdminLpm();
     }
 
-    public function update(AuthUser $authUser, SpmiPeriod $spmiPeriod): bool
+    public function update(User $user, SpmiPeriod $spmiPeriod): bool
     {
-        return $authUser->can('Update:SpmiPeriod');
+        return $user->can('spmi-periods.update') && $user->isAdminLpm();
     }
 
-    public function delete(AuthUser $authUser, SpmiPeriod $spmiPeriod): bool
+    public function delete(User $user, SpmiPeriod $spmiPeriod): bool
     {
-        return $authUser->can('Delete:SpmiPeriod');
+        return $user->can('spmi-periods.delete') && $user->isAdminLpm();
     }
 
-    public function deleteAny(AuthUser $authUser): bool
+    public function deleteAny(User $user): bool
     {
-        return $authUser->can('DeleteAny:SpmiPeriod');
+        return $user->can('spmi-periods.delete') && $user->isAdminLpm();
     }
 
-    public function restore(AuthUser $authUser, SpmiPeriod $spmiPeriod): bool
+    public function restore(User $user, SpmiPeriod $spmiPeriod): bool
     {
-        return $authUser->can('Restore:SpmiPeriod');
+        return $user->can('spmi-periods.update');
     }
 
-    public function forceDelete(AuthUser $authUser, SpmiPeriod $spmiPeriod): bool
+    public function forceDelete(User $user, SpmiPeriod $spmiPeriod): bool
     {
-        return $authUser->can('ForceDelete:SpmiPeriod');
+        return $user->can('spmi-periods.delete');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('ForceDeleteAny:SpmiPeriod');
+        return $user->can('spmi-periods.delete');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:SpmiPeriod');
+        return $user->can('spmi-periods.update');
     }
 
-    public function replicate(AuthUser $authUser, SpmiPeriod $spmiPeriod): bool
+    public function replicate(User $user, SpmiPeriod $spmiPeriod): bool
     {
-        return $authUser->can('Replicate:SpmiPeriod');
+        return $user->can('spmi-periods.create');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function reorder(User $user): bool
     {
-        return $authUser->can('Reorder:SpmiPeriod');
+        return $user->can('spmi-periods.update');
     }
-
 }

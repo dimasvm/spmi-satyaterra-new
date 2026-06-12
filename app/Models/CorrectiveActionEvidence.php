@@ -10,6 +10,8 @@ class CorrectiveActionEvidence extends Model
 {
     use HasFactory;
 
+    protected $table = 'corrective_action_evidences';
+
     protected $fillable = [
         'corrective_action_id',
         'file_name',

@@ -21,6 +21,7 @@ use App\Models\StandardCategory;
 use App\Models\StandardIndicator;
 use App\Models\Unit;
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -310,6 +311,34 @@ class IndicatorUnitAssignmentResourceTest extends TestCase
         $this->assertDatabaseMissing(IndicatorAssignmentEvent::class, [
             'indicator_unit_assignment_id' => $assignment->id,
         ]);
+    }
+
+    public function test_standard_indicator_table_can_render_assigned_units(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+
+        $user = User::factory()->create();
+        $user->assignRole('admin_lpm');
+
+        $this->actingAs($user);
+
+        $indicator = $this->createIndicator('IKU-001');
+        $unit = $this->createUnit('UPM');
+        $period = $this->createSpmiPeriod();
+
+        IndicatorUnitAssignment::query()->create([
+            'standard_indicator_id' => $indicator->id,
+            'unit_id' => $unit->id,
+            'spmi_period_id' => $period->id,
+            'due_date' => '2026-06-30',
+            'status' => IndicatorAssignmentStatus::Assigned,
+            'priority' => IndicatorAssignmentPriority::Normal,
+        ]);
+
+        Livewire::test(ListStandardIndicators::class)
+            ->assertOk()
+            ->assertCanSeeTableRecords([$indicator])
+            ->assertSee('UPM');
     }
 
     public function test_it_can_assign_single_indicator_to_units_from_indicator_table(): void

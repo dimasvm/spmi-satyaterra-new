@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class QualityStandard extends Model
 {
@@ -54,6 +55,23 @@ class QualityStandard extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(QualityDocument::class);
+    }
+
+    public function assignments(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            IndicatorUnitAssignment::class,
+            StandardIndicator::class,
+            'quality_standard_id',
+            'standard_indicator_id',
+        );
+    }
+
+    public function achievements(): Builder
+    {
+        return IndicatorAchievement::query()
+            ->whereHas('assignment.standardIndicator', fn (Builder $query): Builder => $query
+                ->where('quality_standard_id', $this->getKey()));
     }
 
     // Scope -----------------------------------------------

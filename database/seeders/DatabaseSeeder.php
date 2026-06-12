@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,9 +22,9 @@ class DatabaseSeeder extends Seeder
             SpmiPeriodSeeder::class,
             QualityStandardSeeder::class,
             StandardIndicatorSeeder::class,
+            QualityDocumentDemoSeeder::class,
+            IndicatorWorkflowDemoSeeder::class,
+            AmiWorkflowDemoSeeder::class,
         ]);
-
-        Artisan::call('shield:install admin');
-        Artisan::call('shield:generate --all --panel=admin --option=policies_and_permissions');
     }
 }

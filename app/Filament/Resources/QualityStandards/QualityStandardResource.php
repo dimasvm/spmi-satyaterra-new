@@ -6,8 +6,12 @@ use App\Filament\Resources\QualityStandards\Pages\CreateQualityStandard;
 use App\Filament\Resources\QualityStandards\Pages\EditQualityStandard;
 use App\Filament\Resources\QualityStandards\Pages\ListQualityStandards;
 use App\Filament\Resources\QualityStandards\Pages\ViewQualityStandard;
+use App\Filament\Resources\QualityStandards\RelationManagers\AchievementsRelationManager;
+use App\Filament\Resources\QualityStandards\RelationManagers\AssignmentsRelationManager;
+use App\Filament\Resources\QualityStandards\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\QualityStandards\RelationManagers\IndicatorsRelationManager;
 use App\Filament\Resources\QualityStandards\Schemas\QualityStandardForm;
+use App\Filament\Resources\QualityStandards\Schemas\QualityStandardInfolist;
 use App\Filament\Resources\QualityStandards\Tables\QualityStandardsTable;
 use App\Filament\Resources\QualityStandards\Widgets\QualityStandardOverview;
 use App\Models\QualityStandard;
@@ -16,6 +20,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class QualityStandardResource extends Resource
@@ -24,9 +30,11 @@ class QualityStandardResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Penetapan';
+    protected static string|UnitEnum|null $navigationGroup = 'SPMI';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $navigationLabel = 'Standar Mutu';
 
     protected static ?string $modelLabel = 'Standar Mutu';
 
@@ -34,9 +42,48 @@ class QualityStandardResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = auth()->user();
+
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['category', 'spmiPeriod', 'approver'])
+            ->withCount(['indicators', 'documents', 'assignments']);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return (bool) auth()->user()?->can('viewAny', QualityStandard::class);
+    }
+
+    public static function canCreate(): bool
+    {
+        return (bool) auth()->user()?->can('create', QualityStandard::class);
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return static::can('update', $record);
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return static::can('delete', $record);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return QualityStandardForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return QualityStandardInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table
@@ -48,6 +95,9 @@ class QualityStandardResource extends Resource
     {
         return [
             IndicatorsRelationManager::class,
+            DocumentsRelationManager::class,
+            AssignmentsRelationManager::class,
+            AchievementsRelationManager::class,
         ];
     }
 

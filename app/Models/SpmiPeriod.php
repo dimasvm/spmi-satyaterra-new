@@ -54,4 +54,9 @@ class SpmiPeriod extends Model
     {
         $query->where('status', SpmiPeriodStatus::Active);
     }
+
+    public function scopeForActivePeriod(Builder $query): Builder
+    {
+        return $query->active();
+    }
 }

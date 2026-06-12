@@ -61,6 +61,28 @@ class Unit extends Model
         $query->where('is_active', true);
     }
 
+    public function scopeForUser(Builder $query, User $user): Builder
+    {
+        if ($user->isSuperAdmin() || $user->isAdminLpm() || $user->isPimpinan()) {
+            return $query;
+        }
+
+        if ($user->isUnitPic() && $user->unit_id !== null) {
+            return $query->whereKey($user->unit_id);
+        }
+
+        if ($user->isAuditor() || $user->hasRole('viewer')) {
+            return $query->active();
+        }
+
+        return $query->whereRaw('1 = 0');
+    }
+
+    public function scopeForUnit(Builder $query, int|string|null $unitId): Builder
+    {
+        return $query->whereKey($unitId);
+    }
+
     public function scopenonActive(Builder $query)
     {
         $query->where('is_active', false);

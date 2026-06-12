@@ -12,7 +12,7 @@ class IndicatorsRelationManager extends RelationManager
 {
     protected static string $relationship = 'indicators';
 
-    protected static ?string $title = 'Indikator Standar';
+    protected static ?string $title = 'Indikator';
 
     protected static ?string $modelLabel = 'Indikator Standar';
 

@@ -1,75 +1,69 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\StandardCategory;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use App\Models\User;
 
 class StandardCategoryPolicy
 {
-    use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('ViewAny:StandardCategory');
+        return $user->can('standard-categories.view');
     }
 
-    public function view(AuthUser $authUser, StandardCategory $standardCategory): bool
+    public function view(User $user, StandardCategory $standardCategory): bool
     {
-        return $authUser->can('View:StandardCategory');
+        return $user->can('standard-categories.view');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Create:StandardCategory');
+        return $user->can('standard-categories.create');
     }
 
-    public function update(AuthUser $authUser, StandardCategory $standardCategory): bool
+    public function update(User $user, StandardCategory $standardCategory): bool
     {
-        return $authUser->can('Update:StandardCategory');
+        return $user->can('standard-categories.update');
     }
 
-    public function delete(AuthUser $authUser, StandardCategory $standardCategory): bool
+    public function delete(User $user, StandardCategory $standardCategory): bool
     {
-        return $authUser->can('Delete:StandardCategory');
+        return $user->can('standard-categories.delete');
     }
 
-    public function deleteAny(AuthUser $authUser): bool
+    public function deleteAny(User $user): bool
     {
-        return $authUser->can('DeleteAny:StandardCategory');
+        return $user->can('standard-categories.delete');
     }
 
-    public function restore(AuthUser $authUser, StandardCategory $standardCategory): bool
+    public function restore(User $user, StandardCategory $standardCategory): bool
     {
-        return $authUser->can('Restore:StandardCategory');
+        return $user->can('standard-categories.update');
     }
 
-    public function forceDelete(AuthUser $authUser, StandardCategory $standardCategory): bool
+    public function forceDelete(User $user, StandardCategory $standardCategory): bool
     {
-        return $authUser->can('ForceDelete:StandardCategory');
+        return $user->can('standard-categories.delete');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('ForceDeleteAny:StandardCategory');
+        return $user->can('standard-categories.delete');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:StandardCategory');
+        return $user->can('standard-categories.update');
     }
 
-    public function replicate(AuthUser $authUser, StandardCategory $standardCategory): bool
+    public function replicate(User $user, StandardCategory $standardCategory): bool
     {
-        return $authUser->can('Replicate:StandardCategory');
+        return $user->can('standard-categories.create');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function reorder(User $user): bool
     {
-        return $authUser->can('Reorder:StandardCategory');
+        return $user->can('standard-categories.update');
     }
-
 }

@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\QualityStandardStatus;
+use App\Enums\SpmiPeriodStatus;
 use App\Enums\StandardIndicatorType;
 use App\Enums\TargetOperator;
 use App\Filament\Resources\QualityStandards\Pages\EditQualityStandard;
 use App\Filament\Resources\QualityStandards\RelationManagers\IndicatorsRelationManager;
 use App\Models\QualityStandard;
+use App\Models\SpmiPeriod;
 use App\Models\StandardCategory;
 use App\Models\StandardIndicator;
 use App\Models\User;
@@ -16,6 +18,8 @@ use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class QualityStandardIndicatorsRelationManagerTest extends TestCase
@@ -28,7 +32,17 @@ class QualityStandardIndicatorsRelationManagerTest extends TestCase
 
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->createRoleUser('admin_lpm', [
+            'quality-standards.view',
+            'quality-standards.update',
+            'standard-indicators.view',
+            'standard-indicators.create',
+            'standard-indicators.update',
+            'standard-indicators.delete',
+            'quality-documents.view',
+            'indicator-assignments.view',
+            'indicator-achievements.view',
+        ]));
     }
 
     public function test_indicators_relation_manager_is_rendered_on_quality_standard_edit_page(): void
@@ -102,10 +116,38 @@ class QualityStandardIndicatorsRelationManagerTest extends TestCase
 
         return QualityStandard::query()->create([
             'standard_category_id' => $category->id,
+            'spmi_period_id' => $this->createSpmiPeriod()->id,
             'code' => 'QS-001',
             'name' => 'Standar Mutu 001',
             'status' => QualityStandardStatus::Draft,
             'version' => 1,
         ]);
+    }
+
+    private function createSpmiPeriod(): SpmiPeriod
+    {
+        return SpmiPeriod::query()->create([
+            'name' => 'SPMI 2026',
+            'academic_year' => '2025/2026',
+            'semester' => null,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-12-31',
+            'status' => SpmiPeriodStatus::Active,
+        ]);
+    }
+
+    /**
+     * @param  array<int, string>  $permissions
+     */
+    private function createRoleUser(string $roleName, array $permissions): User
+    {
+        foreach ($permissions as $permission) {
+            Permission::findOrCreate($permission, 'web');
+        }
+
+        $role = Role::findOrCreate($roleName, 'web');
+        $role->syncPermissions($permissions);
+
+        return User::factory()->create()->assignRole($role);
     }
 }

@@ -6,6 +6,7 @@ use App\Enums\UnitType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -53,6 +54,9 @@ class UnitsTable
                 TernaryFilter::make('is_active')
                     ->label('Aktif'),
             ])
+            ->emptyStateHeading('Belum ada unit')
+            ->emptyStateDescription('Tambahkan fakultas, program studi, lembaga, atau unit kerja yang akan memakai SPMI.')
+            ->emptyStateIcon(Heroicon::OutlinedBuildingOffice)
             ->defaultSort('code')
             ->recordActions([
                 EditAction::make(),

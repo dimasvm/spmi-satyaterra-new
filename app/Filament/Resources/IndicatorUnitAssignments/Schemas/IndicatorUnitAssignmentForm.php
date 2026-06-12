@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\IndicatorUnitAssignments\Schemas;
 
+use App\Enums\IndicatorAssignmentStatus;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 
 class IndicatorUnitAssignmentForm
@@ -10,7 +12,8 @@ class IndicatorUnitAssignmentForm
     {
         return $schema
             ->components([
-                //
+                Select::make('status')
+                    ->options(IndicatorAssignmentStatus::class),
             ]);
     }
 }

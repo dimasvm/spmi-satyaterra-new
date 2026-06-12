@@ -1,75 +1,69 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\StandardIndicator;
-use Illuminate\Auth\Access\HandlesAuthorization;
+use App\Models\User;
 
 class StandardIndicatorPolicy
 {
-    use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('ViewAny:StandardIndicator');
+        return $user->can('standard-indicators.view');
     }
 
-    public function view(AuthUser $authUser, StandardIndicator $standardIndicator): bool
+    public function view(User $user, StandardIndicator $standardIndicator): bool
     {
-        return $authUser->can('View:StandardIndicator');
+        return $user->can('standard-indicators.view');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Create:StandardIndicator');
+        return $user->can('standard-indicators.create') && $user->isAdminLpm();
     }
 
-    public function update(AuthUser $authUser, StandardIndicator $standardIndicator): bool
+    public function update(User $user, StandardIndicator $standardIndicator): bool
     {
-        return $authUser->can('Update:StandardIndicator');
+        return $user->can('standard-indicators.update') && $user->isAdminLpm();
     }
 
-    public function delete(AuthUser $authUser, StandardIndicator $standardIndicator): bool
+    public function delete(User $user, StandardIndicator $standardIndicator): bool
     {
-        return $authUser->can('Delete:StandardIndicator');
+        return $user->can('standard-indicators.delete') && $user->isAdminLpm();
     }
 
-    public function deleteAny(AuthUser $authUser): bool
+    public function deleteAny(User $user): bool
     {
-        return $authUser->can('DeleteAny:StandardIndicator');
+        return $user->can('standard-indicators.delete') && $user->isAdminLpm();
     }
 
-    public function restore(AuthUser $authUser, StandardIndicator $standardIndicator): bool
+    public function restore(User $user, StandardIndicator $standardIndicator): bool
     {
-        return $authUser->can('Restore:StandardIndicator');
+        return $user->can('standard-indicators.update');
     }
 
-    public function forceDelete(AuthUser $authUser, StandardIndicator $standardIndicator): bool
+    public function forceDelete(User $user, StandardIndicator $standardIndicator): bool
     {
-        return $authUser->can('ForceDelete:StandardIndicator');
+        return $user->can('standard-indicators.delete');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('ForceDeleteAny:StandardIndicator');
+        return $user->can('standard-indicators.delete');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:StandardIndicator');
+        return $user->can('standard-indicators.update');
     }
 
-    public function replicate(AuthUser $authUser, StandardIndicator $standardIndicator): bool
+    public function replicate(User $user, StandardIndicator $standardIndicator): bool
     {
-        return $authUser->can('Replicate:StandardIndicator');
+        return $user->can('standard-indicators.create');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function reorder(User $user): bool
     {
-        return $authUser->can('Reorder:StandardIndicator');
+        return $user->can('standard-indicators.update');
     }
-
 }

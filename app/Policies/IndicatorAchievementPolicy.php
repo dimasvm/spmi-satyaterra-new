@@ -1,74 +1,94 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
+use App\Enums\SubmissionStatus;
 use App\Models\IndicatorAchievement;
-use Illuminate\Auth\Access\HandlesAuthorization;
-use Illuminate\Foundation\Auth\User as AuthUser;
+use App\Models\User;
 
 class IndicatorAchievementPolicy
 {
-    use HandlesAuthorization;
-
-    public function viewAny(AuthUser $authUser): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('ViewAny:IndicatorAchievement');
+        return $user->can('indicator-achievements.view');
     }
 
-    public function view(AuthUser $authUser, IndicatorAchievement $indicatorAchievement): bool
+    public function view(User $user, IndicatorAchievement $indicatorAchievement): bool
     {
-        return $authUser->can('View:IndicatorAchievement');
+        if ($user->isAdminLpm() || $user->can('indicator-achievements.review')) {
+            return true;
+        }
+
+        if ($user->can('indicator-achievements.view') && $user->isPimpinan()) {
+            return true;
+        }
+
+        return $user->can('indicator-achievements.view')
+            && $this->belongsToUserUnit($user, $indicatorAchievement);
     }
 
-    public function create(AuthUser $authUser): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Create:IndicatorAchievement');
+        return $user->can('indicator-achievements.create');
     }
 
-    public function update(AuthUser $authUser, IndicatorAchievement $indicatorAchievement): bool
+    public function update(User $user, IndicatorAchievement $indicatorAchievement): bool
     {
-        return $authUser->can('Update:IndicatorAchievement');
+        if ($user->isAdminLpm() || $user->can('indicator-achievements.review')) {
+            return true;
+        }
+
+        return $user->can('indicator-achievements.update')
+            && $this->belongsToUserUnit($user, $indicatorAchievement)
+            && in_array($indicatorAchievement->submission_status, [
+                SubmissionStatus::Draft,
+                SubmissionStatus::Returned,
+            ], true);
     }
 
-    public function delete(AuthUser $authUser, IndicatorAchievement $indicatorAchievement): bool
+    public function delete(User $user, IndicatorAchievement $indicatorAchievement): bool
     {
-        return $authUser->can('Delete:IndicatorAchievement');
+        return $user->can('indicator-achievements.delete') && $user->isAdminLpm();
     }
 
-    public function deleteAny(AuthUser $authUser): bool
+    public function deleteAny(User $user): bool
     {
-        return $authUser->can('DeleteAny:IndicatorAchievement');
+        return $user->can('indicator-achievements.delete') && $user->isAdminLpm();
     }
 
-    public function restore(AuthUser $authUser, IndicatorAchievement $indicatorAchievement): bool
+    public function restore(User $user, IndicatorAchievement $indicatorAchievement): bool
     {
-        return $authUser->can('Restore:IndicatorAchievement');
+        return $user->can('indicator-achievements.update');
     }
 
-    public function forceDelete(AuthUser $authUser, IndicatorAchievement $indicatorAchievement): bool
+    public function forceDelete(User $user, IndicatorAchievement $indicatorAchievement): bool
     {
-        return $authUser->can('ForceDelete:IndicatorAchievement');
+        return $user->can('indicator-achievements.delete');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('ForceDeleteAny:IndicatorAchievement');
+        return $user->can('indicator-achievements.delete');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:IndicatorAchievement');
+        return $user->can('indicator-achievements.update');
     }
 
-    public function replicate(AuthUser $authUser, IndicatorAchievement $indicatorAchievement): bool
+    public function replicate(User $user, IndicatorAchievement $indicatorAchievement): bool
     {
-        return $authUser->can('Replicate:IndicatorAchievement');
+        return $user->can('indicator-achievements.create');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function reorder(User $user): bool
     {
-        return $authUser->can('Reorder:IndicatorAchievement');
+        return $user->can('indicator-achievements.update');
+    }
+
+    private function belongsToUserUnit(User $user, IndicatorAchievement $indicatorAchievement): bool
+    {
+        return $indicatorAchievement->assignment !== null
+            && $user->canAccessUnit($indicatorAchievement->assignment->unit_id);
     }
 }

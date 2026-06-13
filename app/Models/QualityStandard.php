@@ -57,6 +57,21 @@ class QualityStandard extends Model
         return $this->hasMany(QualityDocument::class);
     }
 
+    public function improvementProposals(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class);
+    }
+
+    public function createdFromImprovementProposals(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class, 'created_standard_id');
+    }
+
+    public function revisionHistories(): HasMany
+    {
+        return $this->hasMany(StandardRevisionHistory::class);
+    }
+
     public function assignments(): HasManyThrough
     {
         return $this->hasManyThrough(

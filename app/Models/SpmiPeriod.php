@@ -49,6 +49,16 @@ class SpmiPeriod extends Model
         return $this->hasMany(QualityDocument::class);
     }
 
+    public function managementReviews(): HasMany
+    {
+        return $this->hasMany(ManagementReview::class);
+    }
+
+    public function targetedStandardImprovementProposals(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class, 'target_spmi_period_id');
+    }
+
     // -------------------- Scope ------------------------------
     public function scopeActive(Builder $query)
     {

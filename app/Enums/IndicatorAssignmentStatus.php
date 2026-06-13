@@ -29,8 +29,8 @@ enum IndicatorAssignmentStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Assigned => 'gray',
-            self::InProgress => 'warning',
-            self::Submitted => 'info',
+            self::InProgress => 'info',
+            self::Submitted => 'warning',
             self::Validated => 'success',
             self::Returned => 'danger',
         };

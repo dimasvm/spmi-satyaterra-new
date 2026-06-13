@@ -29,8 +29,9 @@ enum CorrectiveActionStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Draft => 'gray',
-            self::Submitted, self::InReview => 'info',
-            self::NeedRevision => 'warning',
+            self::Submitted => 'warning',
+            self::InReview => 'info',
+            self::NeedRevision => 'danger',
             self::Accepted => 'success',
         };
     }

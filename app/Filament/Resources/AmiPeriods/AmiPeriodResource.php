@@ -25,9 +25,9 @@ class AmiPeriodResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'AMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Periode AMI';
 
@@ -41,7 +41,7 @@ class AmiPeriodResource extends Resource
     {
         $user = auth()->user();
 
-        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm() || $user?->isAuditor());
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
     }
 
     public static function getEloquentQuery(): Builder

@@ -29,7 +29,7 @@ enum QualityDocumentStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Draft, self::Archived => 'gray',
-            self::Submitted => 'info',
+            self::Submitted => 'warning',
             self::Approved, self::Active => 'success',
         };
     }

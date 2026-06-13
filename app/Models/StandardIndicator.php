@@ -58,4 +58,19 @@ class StandardIndicator extends Model
     {
         return $this->hasMany(AmiFinding::class);
     }
+
+    public function improvementProposals(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class);
+    }
+
+    public function createdFromImprovementProposals(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class, 'created_indicator_id');
+    }
+
+    public function revisionHistories(): HasMany
+    {
+        return $this->hasMany(StandardRevisionHistory::class);
+    }
 }

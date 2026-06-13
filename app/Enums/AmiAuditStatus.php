@@ -29,8 +29,8 @@ enum AmiAuditStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Planned => 'gray',
-            self::Scheduled => 'info',
-            self::Ongoing => 'warning',
+            self::Scheduled => 'warning',
+            self::Ongoing => 'info',
             self::Completed, self::Finalized => 'success',
         };
     }

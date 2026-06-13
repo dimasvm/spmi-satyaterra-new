@@ -13,6 +13,8 @@ enum ReportType: string implements HasLabel
     case AmiByPeriod = 'ami_by_period';
     case AuditFindings = 'audit_findings';
     case CorrectiveActions = 'corrective_actions';
+    case ManagementReviews = 'management_reviews';
+    case StandardImprovements = 'standard_improvements';
 
     public function getLabel(): string|Htmlable|null
     {
@@ -23,6 +25,8 @@ enum ReportType: string implements HasLabel
             self::AmiByPeriod => 'Laporan AMI per Periode',
             self::AuditFindings => 'Laporan Temuan Audit',
             self::CorrectiveActions => 'Laporan Tindak Lanjut Temuan',
+            self::ManagementReviews => 'Laporan RTM',
+            self::StandardImprovements => 'Laporan Peningkatan Standar',
         };
     }
 
@@ -35,6 +39,8 @@ enum ReportType: string implements HasLabel
             self::AmiByPeriod => 'laporan-ami-per-periode',
             self::AuditFindings => 'laporan-temuan-audit',
             self::CorrectiveActions => 'laporan-tindak-lanjut-temuan',
+            self::ManagementReviews => 'laporan-rtm',
+            self::StandardImprovements => 'laporan-peningkatan-standar',
         };
     }
 
@@ -46,6 +52,8 @@ enum ReportType: string implements HasLabel
             self::AmiByPeriod => 'reports.pdf.ami-audits',
             self::AuditFindings => 'reports.pdf.audit-findings',
             self::CorrectiveActions => 'reports.pdf.corrective-actions',
+            self::ManagementReviews => 'reports.pdf.management-reviews',
+            self::StandardImprovements => 'reports.pdf.standard-improvements',
         };
     }
 }

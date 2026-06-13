@@ -22,13 +22,15 @@ class TindakLanjutTemuan extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'AMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengendalian';
 
     protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Tindak Lanjut';
 
     protected static ?string $title = 'Tindak Lanjut Temuan';
+
+    protected static bool $shouldRegisterNavigation = false;
 
     protected string $view = 'filament.pages.tindak-lanjut-temuan';
 

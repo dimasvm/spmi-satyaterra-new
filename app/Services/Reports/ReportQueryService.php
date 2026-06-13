@@ -8,6 +8,8 @@ use App\Models\AmiAudit;
 use App\Models\AmiFinding;
 use App\Models\CorrectiveAction;
 use App\Models\IndicatorAchievement;
+use App\Models\ManagementReview;
+use App\Models\StandardImprovementProposal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -64,6 +66,27 @@ class ReportQueryService
                 'Status Verifikasi',
                 'Catatan Reviewer',
             ],
+            ReportType::ManagementReviews => [
+                'Periode SPMI',
+                'Periode AMI',
+                'Judul RTM',
+                'Tanggal Rapat',
+                'Lokasi',
+                'Jumlah Keputusan',
+                'Jumlah Usulan',
+                'Status',
+            ],
+            ReportType::StandardImprovements => [
+                'Periode Target',
+                'RTM',
+                'Standar',
+                'Indikator',
+                'Jenis Usulan',
+                'Judul Usulan',
+                'Status',
+                'Pengusul',
+                'Tanggal Review',
+            ],
         };
     }
 
@@ -79,6 +102,8 @@ class ReportQueryService
             ReportType::AmiByPeriod => $this->amiAuditRows($filters),
             ReportType::AuditFindings => $this->auditFindingRows($filters),
             ReportType::CorrectiveActions => $this->correctiveActionRows($filters),
+            ReportType::ManagementReviews => $this->managementReviewRows($filters),
+            ReportType::StandardImprovements => $this->standardImprovementRows($filters),
         };
     }
 
@@ -192,6 +217,48 @@ class ReportQueryService
 
     /**
      * @param  array<string, mixed>  $filters
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function managementReviewRows(array $filters): Collection
+    {
+        return $this->managementReviewQuery($filters)
+            ->withCount(['items', 'improvementProposals'])
+            ->get()
+            ->map(fn (ManagementReview $review): array => [
+                'periode_spmi' => $review->spmiPeriod?->name ?? '-',
+                'periode_ami' => $review->amiPeriod?->name ?? '-',
+                'judul_rtm' => $review->title,
+                'tanggal_rapat' => $review->meeting_date?->format('d M Y') ?? '-',
+                'lokasi' => $review->location ?? '-',
+                'jumlah_keputusan' => $review->items_count,
+                'jumlah_usulan' => $review->improvement_proposals_count,
+                'status' => $review->status?->getLabel() ?? '-',
+            ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function standardImprovementRows(array $filters): Collection
+    {
+        return $this->standardImprovementQuery($filters)
+            ->get()
+            ->map(fn (StandardImprovementProposal $proposal): array => [
+                'periode_target' => $proposal->targetSpmiPeriod?->name ?? '-',
+                'rtm' => $proposal->managementReview?->title ?? '-',
+                'standar' => $proposal->qualityStandard?->name ?? '-',
+                'indikator' => $proposal->standardIndicator?->code ?? '-',
+                'jenis_usulan' => $proposal->proposal_type?->getLabel() ?? '-',
+                'judul_usulan' => $proposal->title,
+                'status' => $proposal->status?->getLabel() ?? '-',
+                'pengusul' => $proposal->proposedBy?->name ?? '-',
+                'tanggal_review' => $proposal->reviewed_at?->format('d M Y') ?? '-',
+            ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
      */
     private function indicatorAchievementQuery(array $filters): Builder
     {
@@ -271,6 +338,60 @@ class ReportQueryService
             ->when($filters['status'] ?? null, fn (Builder $query, string $status): Builder => $query->where('status', $status))
             ->when($filters['date_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('target_date', '>=', $date))
             ->when($filters['date_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('target_date', '<=', $date))
+            ->latest();
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function managementReviewQuery(array $filters): Builder
+    {
+        $query = ManagementReview::query()
+            ->with(['spmiPeriod', 'amiPeriod']);
+
+        if ($user = auth()->user()) {
+            $query->forUser($user);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            ->when($filters['spmi_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->where('spmi_period_id', $id))
+            ->when($filters['ami_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->where('ami_period_id', $id))
+            ->when($filters['status'] ?? null, fn (Builder $query, string $status): Builder => $query->where('status', $status))
+            ->when($filters['date_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('meeting_date', '>=', $date))
+            ->when($filters['date_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('meeting_date', '<=', $date))
+            ->latest('meeting_date');
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function standardImprovementQuery(array $filters): Builder
+    {
+        $query = StandardImprovementProposal::query()
+            ->with([
+                'managementReview',
+                'qualityStandard',
+                'standardIndicator',
+                'targetSpmiPeriod',
+                'proposedBy',
+            ]);
+
+        if ($user = auth()->user()) {
+            $query->forUser($user);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            ->when($filters['spmi_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->where('target_spmi_period_id', $id))
+            ->when($filters['ami_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('managementReview', fn (Builder $reviewQuery): Builder => $reviewQuery->where('ami_period_id', $id)))
+            ->when($filters['unit_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('managementReview.amiPeriod.audits', fn (Builder $auditQuery): Builder => $auditQuery->where('auditee_unit_id', $this->authorizedUnitId((int) $id))))
+            ->when($filters['standard_category_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('qualityStandard', fn (Builder $standardQuery): Builder => $standardQuery->where('standard_category_id', $id)))
+            ->when($filters['status'] ?? null, fn (Builder $query, string $status): Builder => $query->where('status', $status))
+            ->when($filters['date_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '>=', $date))
+            ->when($filters['date_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date))
             ->latest();
     }
 

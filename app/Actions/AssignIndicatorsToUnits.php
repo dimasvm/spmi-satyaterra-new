@@ -16,7 +16,7 @@ class AssignIndicatorsToUnits
     /**
      * @param  iterable<int, StandardIndicator>  $indicators
      * @param  array<int, int|string>  $unitIds
-     * @return array{created: int, skipped: int}
+     * @return array{created: int, updated: int, skipped: int}
      */
     public function handle(
         iterable $indicators,
@@ -31,6 +31,7 @@ class AssignIndicatorsToUnits
         ?CarbonInterface $assignedAt = null,
     ): array {
         $createdCount = 0;
+        $updatedCount = 0;
         $skippedCount = 0;
         $statusValue = $status instanceof IndicatorAssignmentStatus ? $status->value : $status;
         $priorityValue = $priority instanceof IndicatorAssignmentPriority ? $priority->value : $priority;
@@ -48,11 +49,12 @@ class AssignIndicatorsToUnits
             $assignedBy,
             $assignedAt,
             &$createdCount,
+            &$updatedCount,
             &$skippedCount,
         ): void {
             foreach ($indicators as $indicator) {
                 foreach ($unitIds as $unitId) {
-                    $assignment = IndicatorUnitAssignment::query()->firstOrCreate(
+                    $assignment = IndicatorUnitAssignment::query()->updateOrCreate(
                         [
                             'standard_indicator_id' => $indicator->id,
                             'unit_id' => $unitId,
@@ -70,15 +72,13 @@ class AssignIndicatorsToUnits
                     );
 
                     if (! $assignment->wasRecentlyCreated) {
-                        $skippedCount++;
+                        $updatedCount++;
 
                         continue;
                     }
 
                     $createdCount++;
 
-
-                    // Create Notification
                     $recipients = User::query()->where('unit_id', $unitId)->get();
 
                     foreach ($recipients as $recipient) {
@@ -95,6 +95,7 @@ class AssignIndicatorsToUnits
 
         return [
             'created' => $createdCount,
+            'updated' => $updatedCount,
             'skipped' => $skippedCount,
         ];
     }
@@ -112,7 +113,7 @@ class AssignIndicatorsToUnits
         ]);
     }
 
-    private function triggerNotification(User $recipent, ?string $title, ?string $description)
+    private function triggerNotification(User $recipent, ?string $title, ?string $description): void
     {
         Notification::make()
             ->title($title ?? 'Penugasan Indikator Mutu')

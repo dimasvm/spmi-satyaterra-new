@@ -33,7 +33,8 @@ enum ActivityLogEvent: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Created, self::Updated => 'gray',
-            self::Submitted, self::Reviewed => 'info',
+            self::Submitted => 'warning',
+            self::Reviewed => 'info',
             self::Approved => 'success',
             self::Rejected, self::Deleted => 'danger',
         };

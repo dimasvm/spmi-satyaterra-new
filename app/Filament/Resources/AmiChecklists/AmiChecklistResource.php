@@ -32,7 +32,7 @@ class AmiChecklistResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'AMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Evaluasi AMI';
 
     protected static ?int $navigationSort = 3;
 
@@ -44,9 +44,7 @@ class AmiChecklistResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        $user = auth()->user();
-
-        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm() || $user?->isAuditor());
+        return false;
     }
 
     public static function getEloquentQuery(): Builder

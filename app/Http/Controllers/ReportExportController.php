@@ -9,7 +9,9 @@ use App\Exports\Reports\CorrectiveActionReportExport;
 use App\Exports\Reports\IndicatorAchievementByPeriodExport;
 use App\Exports\Reports\IndicatorAchievementByUnitExport;
 use App\Exports\Reports\LpmValidationExport;
+use App\Exports\Reports\ManagementReviewReportExport;
 use App\Exports\Reports\ReportExport;
+use App\Exports\Reports\StandardImprovementReportExport;
 use App\Services\Reports\ReportQueryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -103,6 +105,8 @@ class ReportExportController extends Controller
             ReportType::AmiByPeriod => new AmiAuditReportExport($reports, $filters),
             ReportType::AuditFindings => new AuditFindingReportExport($reports, $filters),
             ReportType::CorrectiveActions => new CorrectiveActionReportExport($reports, $filters),
+            ReportType::ManagementReviews => new ManagementReviewReportExport($reports, $filters),
+            ReportType::StandardImprovements => new StandardImprovementReportExport($reports, $filters),
         };
     }
 

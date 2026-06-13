@@ -35,10 +35,9 @@ class StandardCategoryResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
-        // $user = auth()->user();
+        $user = auth()->user();
 
-        // return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
     }
 
     public static function form(Schema $schema): Schema

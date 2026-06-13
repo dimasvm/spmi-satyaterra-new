@@ -35,4 +35,9 @@ class AmiPeriod extends Model
     {
         return $this->hasMany(AmiAudit::class);
     }
+
+    public function managementReviews(): HasMany
+    {
+        return $this->hasMany(ManagementReview::class);
+    }
 }

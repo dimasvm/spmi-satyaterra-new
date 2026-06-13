@@ -2,12 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\AuditorDashboardPlaceholder;
-use App\Filament\Widgets\LatestAchievementsTable;
-use App\Filament\Widgets\NotAchievedIndicatorsTable;
-use App\Filament\Widgets\ReturnedAchievementsTable;
-use App\Filament\Widgets\SpmiDashboardStats;
-use App\Filament\Widgets\UnitsWithoutSubmissionTable;
+use App\Filament\Widgets\SpmiCommandCenter;
 use App\Models\SpmiPeriod;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -38,6 +33,7 @@ class Dashboard extends BaseDashboard
                 Select::make('spmi_period_id')
                     ->label('Periode SPMI')
                     ->columnStart(-1)
+                    ->hiddenLabel()
                     ->options(fn () => SpmiPeriod::query()->pluck('name', 'id'))
                     ->default(fn (): ?int => SpmiPeriod::active()->value('id'))
                     ->searchable()
@@ -48,12 +44,7 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            SpmiDashboardStats::class,
-            AuditorDashboardPlaceholder::class,
-            LatestAchievementsTable::class,
-            UnitsWithoutSubmissionTable::class,
-            ReturnedAchievementsTable::class,
-            NotAchievedIndicatorsTable::class,
+            SpmiCommandCenter::class,
         ];
     }
 

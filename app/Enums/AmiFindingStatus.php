@@ -29,7 +29,8 @@ enum AmiFindingStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Open => 'gray',
-            self::InProgress, self::WaitingVerification => 'warning',
+            self::InProgress => 'info',
+            self::WaitingVerification => 'warning',
             self::NeedRevision => 'danger',
             self::Closed => 'success',
         };

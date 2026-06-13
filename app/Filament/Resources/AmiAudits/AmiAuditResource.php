@@ -28,11 +28,11 @@ class AmiAuditResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'AMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Evaluasi AMI';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
-    protected static ?string $navigationLabel = 'Jadwal Audit';
+    protected static ?string $navigationLabel = 'Jadwal AMI';
 
     protected static ?string $modelLabel = 'Audit AMI';
 
@@ -42,7 +42,7 @@ class AmiAuditResource extends Resource
     {
         $user = auth()->user();
 
-        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm() || $user?->isAuditor());
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
     }
 
     public static function getEloquentQuery(): Builder

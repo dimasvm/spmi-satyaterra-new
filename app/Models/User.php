@@ -106,6 +106,36 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(QualityDocument::class, 'approved_by');
     }
 
+    public function createdManagementReviews(): HasMany
+    {
+        return $this->hasMany(ManagementReview::class, 'created_by');
+    }
+
+    public function finalizedManagementReviews(): HasMany
+    {
+        return $this->hasMany(ManagementReview::class, 'finalized_by');
+    }
+
+    public function proposedStandardImprovements(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class, 'proposed_by');
+    }
+
+    public function reviewedStandardImprovements(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class, 'reviewed_by');
+    }
+
+    public function implementedStandardImprovements(): HasMany
+    {
+        return $this->hasMany(StandardImprovementProposal::class, 'implemented_by');
+    }
+
+    public function standardRevisionHistories(): HasMany
+    {
+        return $this->hasMany(StandardRevisionHistory::class, 'revised_by');
+    }
+
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);

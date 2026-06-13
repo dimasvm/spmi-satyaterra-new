@@ -29,17 +29,17 @@ class IndicatorAchievementResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowTrendingUp;
 
-    protected static string|UnitEnum|null $navigationGroup = 'SPMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Pelaksanaan';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'Capaian Indikator';
+    protected static ?string $navigationLabel = 'Monitoring Capaian';
 
     public static function shouldRegisterNavigation(): bool
     {
         $user = auth()->user();
 
-        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm() || $user?->isUnitPic());
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
     }
 
     public static function getEloquentQuery(): Builder

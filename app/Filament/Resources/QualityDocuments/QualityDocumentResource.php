@@ -25,9 +25,9 @@ class QualityDocumentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolderOpen;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Dokumen Mutu';
+    protected static string|UnitEnum|null $navigationGroup = 'Penetapan';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $navigationLabel = 'Dokumen Mutu';
 

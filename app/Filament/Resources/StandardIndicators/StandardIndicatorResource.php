@@ -23,7 +23,7 @@ class StandardIndicatorResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
-    protected static string|UnitEnum|null $navigationGroup = 'SPMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Penetapan';
 
     protected static ?int $navigationSort = 3;
 
@@ -37,9 +37,7 @@ class StandardIndicatorResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        $user = auth()->user();
-
-        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
+        return false;
     }
 
     public static function getEloquentQuery(): Builder

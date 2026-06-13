@@ -31,7 +31,8 @@ enum QualityStandardStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Draft, self::Archived => 'gray',
-            self::Submitted, self::Revised => 'info',
+            self::Submitted => 'warning',
+            self::Revised => 'info',
             self::Approved, self::Active => 'success',
         };
     }

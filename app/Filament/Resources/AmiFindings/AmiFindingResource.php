@@ -28,11 +28,11 @@ class AmiFindingResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedExclamationTriangle;
 
-    protected static string|UnitEnum|null $navigationGroup = 'AMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Evaluasi AMI';
 
     protected static ?int $navigationSort = 4;
 
-    protected static ?string $navigationLabel = 'Temuan Audit';
+    protected static ?string $navigationLabel = 'Hasil Audit';
 
     protected static ?string $modelLabel = 'Temuan AMI';
 
@@ -44,7 +44,7 @@ class AmiFindingResource extends Resource
     {
         $user = auth()->user();
 
-        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm() || $user?->isAuditor() || $user?->isUnitPic());
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
     }
 
     public static function getEloquentQuery(): Builder

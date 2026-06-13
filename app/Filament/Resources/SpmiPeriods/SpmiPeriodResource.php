@@ -23,9 +23,9 @@ class SpmiPeriodResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
-    protected static string|UnitEnum|null $navigationGroup = 'SPMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $navigationLabel = 'Periode SPMI';
 

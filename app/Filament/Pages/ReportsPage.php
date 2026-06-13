@@ -30,9 +30,11 @@ class ReportsPage extends Page
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationLabel = 'Laporan';
+    protected static ?string $navigationLabel = 'Pusat Laporan';
 
-    protected static ?string $title = 'Laporan & Export';
+    protected static ?string $title = 'Pusat Laporan';
+
+    protected static ?string $slug = 'pusat-laporan';
 
     protected string $view = 'filament.pages.reports-page';
 
@@ -59,7 +61,7 @@ class ReportsPage extends Page
     public function mount(): void
     {
         $this->form->fill([
-            'jenis_laporan' => ReportType::IndicatorByPeriod->value,
+            'jenis_laporan' => $this->defaultReportType()->value,
         ]);
 
         $this->refreshPreview();
@@ -127,14 +129,28 @@ class ReportsPage extends Page
 
         $this->headings = $reports->headings($type);
         $this->previewRows = $reports->rows($type, $this->filters())
-            ->take(15)
+            ->take(10)
             ->values()
             ->all();
     }
 
-    public function exportPdf()
+    public function selectReport(string $reportType): void
+    {
+        $type = ReportType::tryFrom($reportType);
+
+        if ($type === null || ! $this->canViewReportType($type)) {
+            abort(403);
+        }
+
+        $this->setReportType($type);
+        $this->refreshPreview();
+    }
+
+    public function exportPdf(?string $reportType = null)
     {
         abort_unless($this->canExport(), 403);
+
+        $this->setReportTypeFromRequest($reportType);
 
         if (! class_exists(Pdf::class)) {
             $this->missingPackageNotification('PDF', 'composer require barryvdh/laravel-dompdf');
@@ -145,9 +161,11 @@ class ReportsPage extends Page
         return redirect()->route('reports.export', $this->exportParameters('pdf'));
     }
 
-    public function exportExcel()
+    public function exportExcel(?string $reportType = null)
     {
         abort_unless($this->canExport(), 403);
+
+        $this->setReportTypeFromRequest($reportType);
 
         if (! class_exists(Excel::class)) {
             $this->missingPackageNotification('Excel', 'composer require maatwebsite/excel');
@@ -185,6 +203,83 @@ class ReportsPage extends Page
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function reportCards(): array
+    {
+        return collect([
+            [
+                'type' => ReportType::IndicatorByPeriod,
+                'title' => 'Laporan Capaian Indikator',
+                'description' => 'Rekap realisasi indikator, target, status capaian, validasi, dan jumlah bukti pendukung.',
+                'filters' => ['Periode SPMI', 'Unit', 'Status', 'Rentang tanggal'],
+                'icon' => Heroicon::OutlinedChartBarSquare,
+            ],
+            [
+                'type' => ReportType::LpmValidation,
+                'title' => 'Laporan Validasi Capaian',
+                'description' => 'Daftar capaian yang sudah masuk alur validasi LPM beserta catatan review terakhir.',
+                'filters' => ['Periode SPMI', 'Unit', 'Kategori standar', 'Status'],
+                'icon' => Heroicon::OutlinedClipboardDocumentCheck,
+            ],
+            [
+                'type' => ReportType::AmiByPeriod,
+                'title' => 'Laporan AMI',
+                'description' => 'Ringkasan audit per periode AMI, unit auditee, auditor, checklist, dan status audit.',
+                'filters' => ['Periode AMI', 'Unit', 'Status audit', 'Tanggal audit'],
+                'icon' => Heroicon::OutlinedClipboardDocumentList,
+            ],
+            [
+                'type' => ReportType::AuditFindings,
+                'title' => 'Laporan Temuan Audit',
+                'description' => 'Temuan AMI, kategori, rekomendasi, deadline, dan status tindak lanjut awal.',
+                'filters' => ['Periode AMI', 'Unit', 'Kategori standar', 'Status'],
+                'icon' => Heroicon::OutlinedExclamationTriangle,
+            ],
+            [
+                'type' => ReportType::CorrectiveActions,
+                'title' => 'Laporan Tindak Lanjut',
+                'description' => 'Rencana tindakan, PIC, target selesai, status pengerjaan, dan hasil verifikasi.',
+                'filters' => ['Periode AMI', 'Unit', 'Status', 'Target selesai'],
+                'icon' => Heroicon::OutlinedArrowPathRoundedSquare,
+            ],
+            [
+                'type' => ReportType::ManagementReviews,
+                'title' => 'Laporan RTM',
+                'description' => 'Rapat tinjauan manajemen, periode terkait, jumlah keputusan, usulan peningkatan, dan status.',
+                'filters' => ['Periode SPMI', 'Periode AMI', 'Status RTM', 'Tanggal rapat'],
+                'icon' => Heroicon::OutlinedRectangleGroup,
+            ],
+            [
+                'type' => ReportType::StandardImprovements,
+                'title' => 'Laporan Peningkatan Standar',
+                'description' => 'Usulan peningkatan standar dari RTM, jenis perubahan, status review, dan periode target.',
+                'filters' => ['Periode SPMI', 'Periode AMI', 'Kategori standar', 'Status'],
+                'icon' => Heroicon::OutlinedSparkles,
+            ],
+        ])
+            ->filter(fn (array $card): bool => $this->canViewReportType($card['type']))
+            ->map(fn (array $card): array => [
+                ...$card,
+                'type_value' => $card['type']->value,
+                'is_active' => $this->reportType() === $card['type'],
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function activeReportCard(): array
+    {
+        return collect($this->reportCards())
+            ->firstWhere('type_value', $this->reportType()->value)
+            ?? $this->reportCards()[0]
+            ?? [];
+    }
+
+    /**
      * @return array<int|string, string>
      */
     private function unitOptions(): array
@@ -204,7 +299,7 @@ class ReportsPage extends Page
     private function statusOptions(): array
     {
         return [
-            'draft' => 'Draft',
+            'draft' => 'Draf',
             'submitted' => 'Dikirim',
             'validated' => 'Tervalidasi',
             'returned' => 'Dikembalikan',
@@ -216,6 +311,11 @@ class ReportsPage extends Page
             'need_revision' => 'Perlu Revisi',
             'closed' => 'Ditutup',
             'accepted' => 'Diterima',
+            'scheduled' => 'Terjadwal',
+            'completed' => 'Selesai',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+            'implemented' => 'Diimplementasikan',
         ];
     }
 
@@ -237,7 +337,13 @@ class ReportsPage extends Page
             return $state;
         }
 
-        return ReportType::tryFrom((string) $state) ?? ReportType::IndicatorByPeriod;
+        $type = ReportType::tryFrom((string) $state) ?? $this->defaultReportType();
+
+        if (! $this->canViewReportType($type)) {
+            return $this->defaultReportType();
+        }
+
+        return $type;
     }
 
     /**
@@ -266,8 +372,79 @@ class ReportsPage extends Page
     private function reportTypeOptions(): array
     {
         return collect(ReportType::cases())
+            ->filter(fn (ReportType $type): bool => $this->canViewReportType($type))
             ->mapWithKeys(fn (ReportType $type): array => [$type->value => $type->getLabel()])
             ->all();
+    }
+
+    private function defaultReportType(): ReportType
+    {
+        return collect(ReportType::cases())
+            ->first(fn (ReportType $type): bool => $this->canViewReportType($type))
+            ?? ReportType::IndicatorByPeriod;
+    }
+
+    private function setReportTypeFromRequest(?string $reportType): void
+    {
+        if ($reportType === null) {
+            return;
+        }
+
+        $type = ReportType::tryFrom($reportType);
+
+        abort_unless($type !== null && $this->canViewReportType($type), 403);
+
+        $this->setReportType($type);
+        $this->refreshPreview();
+    }
+
+    private function setReportType(ReportType $type): void
+    {
+        $state = $this->form->getState();
+        $state['jenis_laporan'] = $type->value;
+
+        $this->form->fill($state);
+    }
+
+    private function canViewReportType(ReportType $type): bool
+    {
+        $user = auth()->user();
+
+        if ($user?->hasAnyRole(['super_admin', 'admin_lpm', 'pimpinan'])) {
+            return true;
+        }
+
+        if ($user?->hasRole('unit_pic')) {
+            return in_array($type, [
+                ReportType::IndicatorByPeriod,
+                ReportType::AuditFindings,
+                ReportType::CorrectiveActions,
+                ReportType::ManagementReviews,
+                ReportType::StandardImprovements,
+            ], true);
+        }
+
+        if ($user?->hasRole('auditor')) {
+            return in_array($type, [
+                ReportType::AmiByPeriod,
+                ReportType::AuditFindings,
+                ReportType::CorrectiveActions,
+                ReportType::ManagementReviews,
+                ReportType::StandardImprovements,
+            ], true);
+        }
+
+        if ($user?->hasRole('viewer')) {
+            return in_array($type, [
+                ReportType::IndicatorByPeriod,
+                ReportType::AmiByPeriod,
+                ReportType::AuditFindings,
+                ReportType::ManagementReviews,
+                ReportType::StandardImprovements,
+            ], true);
+        }
+
+        return false;
     }
 
     private function missingPackageNotification(string $format, string $command): void

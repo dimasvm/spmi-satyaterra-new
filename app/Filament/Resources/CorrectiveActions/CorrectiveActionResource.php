@@ -26,7 +26,7 @@ class CorrectiveActionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
-    protected static string|UnitEnum|null $navigationGroup = 'AMI';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengendalian';
 
     protected static ?int $navigationSort = 5;
 
@@ -38,10 +38,7 @@ class CorrectiveActionResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        $user = auth()->user();
-
-        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm() || $user?->isAuditor())
-            && (bool) $user?->can('corrective-actions.view');
+        return false;
     }
 
     public static function getEloquentQuery(): Builder

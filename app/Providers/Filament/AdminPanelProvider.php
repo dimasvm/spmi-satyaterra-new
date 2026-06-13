@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Dashboard;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -30,9 +31,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->login()
+            ->login(Login::class)
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::Indigo,
             ])
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
@@ -59,11 +60,14 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->navigationGroups([
-                'Master Data',
-                'SPMI',
-                'AMI',
-                'Dokumen Mutu',
+                'Siklus SPMI',
+                'Penetapan',
+                'Pelaksanaan',
+                'Evaluasi AMI',
+                'Pengendalian',
+                'Peningkatan',
                 'Laporan',
+                'Master Data',
                 'Pengaturan',
             ])
             ->spa()

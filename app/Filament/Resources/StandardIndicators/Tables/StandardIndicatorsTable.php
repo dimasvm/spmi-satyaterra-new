@@ -162,7 +162,7 @@ class StandardIndicatorsTable
                     assignedBy: auth()->id(),
                 );
 
-                static::sendAssignmentNotification($result['created'], $result['skipped']);
+                static::sendAssignmentNotification($result['created'], $result['updated'], $result['skipped']);
             });
     }
 
@@ -186,7 +186,7 @@ class StandardIndicatorsTable
                     assignedBy: auth()->id(),
                 );
 
-                static::sendAssignmentNotification($result['created'], $result['skipped']);
+                static::sendAssignmentNotification($result['created'], $result['updated'], $result['skipped']);
             })
             ->deselectRecordsAfterCompletion();
     }
@@ -234,11 +234,21 @@ class StandardIndicatorsTable
         ];
     }
 
-    private static function sendAssignmentNotification(int $createdCount, int $skippedCount): void
+    private static function sendAssignmentNotification(int $createdCount, int $updatedCount, int $skippedCount): void
     {
+        $body = [];
+
+        if ($updatedCount > 0) {
+            $body[] = "{$updatedCount} penugasan diperbarui.";
+        }
+
+        if ($skippedCount > 0) {
+            $body[] = "{$skippedCount} penugasan dilewati.";
+        }
+
         Notification::make()
             ->title("{$createdCount} penugasan dibuat")
-            ->body($skippedCount > 0 ? "{$skippedCount} penugasan sudah ada dan dilewati." : null)
+            ->body($body === [] ? null : implode(' ', $body))
             ->success()
             ->send();
     }

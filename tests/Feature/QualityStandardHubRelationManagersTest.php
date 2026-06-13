@@ -47,7 +47,7 @@ class QualityStandardHubRelationManagersTest extends TestCase
         Filament::setCurrentPanel(Filament::getPanel('admin'));
     }
 
-    public function test_quality_standard_view_page_shows_complete_infolist(): void
+    public function test_quality_standard_view_page_shows_workspace_tabs_and_nested_data(): void
     {
         $admin = $this->createRoleUser('admin_lpm', [
             'quality-standards.view',
@@ -63,15 +63,44 @@ class QualityStandardHubRelationManagersTest extends TestCase
             'approved_by' => $admin->id,
             'approved_at' => now(),
         ]);
+        $indicator = $this->createIndicator($standard, 'IKU-001');
+        $assignment = $this->createAssignment($indicator, $this->createUnit('PRD'));
+        $achievement = $this->createAchievement($assignment);
+
+        QualityDocument::query()->create([
+            'quality_standard_id' => $standard->id,
+            'spmi_period_id' => $standard->spmi_period_id,
+            'title' => 'Manual Mutu Akademik',
+            'document_type' => QualityDocumentType::Manual,
+            'document_number' => 'MM-001',
+            'version' => 1,
+            'external_url' => 'https://example.com/manual.pdf',
+            'status' => QualityDocumentStatus::Active,
+            'uploaded_by' => $admin->id,
+        ]);
 
         $this->actingAs($admin);
 
         Livewire::test(ViewQualityStandard::class, ['record' => $standard->id])
             ->assertOk()
-            ->assertSee('Detail Standar')
+            ->assertSee('Ringkasan')
+            ->assertSee('Indikator')
+            ->assertSee('Dokumen Terkait')
+            ->assertSee('Unit Ditugaskan')
+            ->assertSee('Capaian')
+            ->assertSee('Riwayat Revisi')
             ->assertSee('QS-001')
             ->assertSee('Standar Kompetensi Lulusan')
-            ->assertSee('Deskripsi standar mutu.');
+            ->assertSee('Deskripsi standar mutu.')
+            ->set('activeTab', 'indicators')
+            ->assertSee('Pernyataan IKU-001')
+            ->set('activeTab', 'documents')
+            ->assertSee('Manual Mutu Akademik')
+            ->set('activeTab', 'assignments')
+            ->assertSee('Unit PRD')
+            ->set('activeTab', 'achievements')
+            ->assertSee('90')
+            ->assertSee((string) $achievement->evidences()->count());
     }
 
     public function test_documents_relation_manager_create_fills_standard_period_and_uploader(): void
@@ -103,6 +132,65 @@ class QualityStandardHubRelationManagersTest extends TestCase
             'spmi_period_id' => $standard->spmi_period_id,
             'title' => 'Manual Mutu Akademik',
             'uploaded_by' => $admin->id,
+        ]);
+    }
+
+    public function test_quality_standard_workspace_can_approve_and_archive_related_document(): void
+    {
+        $admin = $this->createRoleUser('admin_lpm', [
+            'quality-standards.view',
+            'quality-documents.view',
+            'quality-documents.update',
+            'quality-documents.approve',
+        ]);
+        $standard = $this->createQualityStandard();
+        $document = QualityDocument::query()->create([
+            'quality_standard_id' => $standard->id,
+            'spmi_period_id' => $standard->spmi_period_id,
+            'title' => 'Manual Mutu Akademik',
+            'document_type' => QualityDocumentType::Manual,
+            'document_number' => 'MM-001',
+            'version' => 1,
+            'external_url' => 'https://example.com/manual.pdf',
+            'status' => QualityDocumentStatus::Draft,
+            'uploaded_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(ViewQualityStandard::class, ['record' => $standard->id])
+            ->set('activeTab', 'documents')
+            ->call('approveDocument', $document->id)
+            ->call('archiveDocument', $document->id);
+
+        $this->assertDatabaseHas(QualityDocument::class, [
+            'id' => $document->id,
+            'status' => QualityDocumentStatus::Archived->value,
+            'approved_by' => $admin->id,
+        ]);
+    }
+
+    public function test_quality_standard_workspace_header_actions_update_standard_status(): void
+    {
+        $admin = $this->createRoleUser('admin_lpm', [
+            'quality-standards.view',
+            'quality-standards.update',
+        ]);
+        $standard = $this->createQualityStandard([
+            'status' => QualityStandardStatus::Draft,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(ViewQualityStandard::class, ['record' => $standard->id])
+            ->callAction('submitApproval')
+            ->callAction('approve')
+            ->callAction('archive');
+
+        $this->assertDatabaseHas(QualityStandard::class, [
+            'id' => $standard->id,
+            'status' => QualityStandardStatus::Archived->value,
+            'approved_by' => $admin->id,
         ]);
     }
 

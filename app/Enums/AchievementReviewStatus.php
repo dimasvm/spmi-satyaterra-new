@@ -28,7 +28,7 @@ enum AchievementReviewStatus: string implements HasColor, HasLabel
         return match ($this) {
             self::Pending => 'warning',
             self::Validated => 'success',
-            self::Returned => 'warning',
+            self::Returned => 'danger',
             self::Rejected => 'danger',
         };
     }

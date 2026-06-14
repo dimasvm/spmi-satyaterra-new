@@ -45,7 +45,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->index(['management_review_id', 'attendance_status']);
+            $table->index(['management_review_id', 'attendance_status'], 'mgt_review_part_att_idx');
         });
 
         Schema::create('management_review_items', function (Blueprint $table): void {
@@ -99,14 +99,17 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'proposal_type']);
-            $table->index(['target_spmi_period_id', 'status']);
+            $table->index(['target_spmi_period_id', 'status'], 'std_imp_prop_target_period_status_idx');
         });
 
         Schema::create('standard_revision_histories', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('quality_standard_id')->nullable()->constrained('quality_standards')->nullOnDelete();
             $table->foreignId('standard_indicator_id')->nullable()->constrained('standard_indicators')->nullOnDelete();
-            $table->foreignId('standard_improvement_proposal_id')->nullable()->constrained('standard_improvement_proposals')->nullOnDelete();
+            $table->foreignId('standard_improvement_proposal_id')
+                ->nullable()
+                ->constrained(table: 'standard_improvement_proposals', indexName: 'std_rev_hist_improvement_proposal_fk')
+                ->nullOnDelete();
             $table->string('revision_type');
             $table->json('old_data')->nullable();
             $table->json('new_data')->nullable();
@@ -115,8 +118,8 @@ return new class extends Migration
             $table->timestamp('revised_at')->nullable();
             $table->timestamps();
 
-            $table->index(['quality_standard_id', 'revision_type']);
-            $table->index(['standard_indicator_id', 'revision_type']);
+            $table->index(['quality_standard_id', 'revision_type'], 'std_rev_hist_qlty_std_rev_type_idx');
+            $table->index(['standard_indicator_id', 'revision_type'], 'std_rev_hist_qlty_std_idc_type_idx');
         });
     }
 

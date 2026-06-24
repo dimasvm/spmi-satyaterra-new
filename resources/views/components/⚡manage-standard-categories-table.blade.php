@@ -20,7 +20,7 @@ new class extends Component implements HasActions, HasSchemas, HasTable
     public function table(Table $table): Table
     {
         return StandardCategoriesTable::configure($table, isModalTable: true)
-            ->query(StandardCategory::query());
+            ->query(StandardCategory::query()->with('parent'));
     }
 };
 ?>

@@ -27,7 +27,8 @@ enum SpmiPeriodStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Draft, self::Archived => 'gray',
-            self::Active, self::Closed => 'success',
+            self::Active => 'success',
+            self::Closed => 'danger',
         };
     }
 }

@@ -51,6 +51,34 @@ class ReportsQueryServiceTest extends TestCase
         $this->assertSame('Unit SI', $rows->first()['unit']);
     }
 
+    public function test_parent_standard_category_filter_includes_child_subcategory_standards(): void
+    {
+        $period = $this->createSpmiPeriod();
+        $parentCategory = StandardCategory::query()->create([
+            'code' => 'PDD',
+            'name' => 'Pendidikan',
+            'description' => null,
+        ]);
+        $subcategory = StandardCategory::query()->create([
+            'parent_id' => $parentCategory->id,
+            'code' => 'PDD-LRN',
+            'name' => 'Luaran',
+            'description' => null,
+        ]);
+        $indicator = $this->createIndicator('IKU-PDD', $subcategory);
+        $unit = $this->createUnit('TI');
+
+        $this->createAchievement($period, $indicator, $unit, 88);
+        $this->actingAs($this->createRoleUser('admin_lpm'));
+
+        $rows = app(ReportQueryService::class)->rows(ReportType::IndicatorByPeriod, [
+            'standard_category_id' => $parentCategory->id,
+        ]);
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('Standar Mutu IKU-PDD', $rows->first()['standar']);
+    }
+
     public function test_auditor_only_receives_assigned_ami_audit_rows(): void
     {
         $period = $this->createSpmiPeriod();
@@ -128,9 +156,9 @@ class ReportsQueryServiceTest extends TestCase
         ]);
     }
 
-    private function createIndicator(string $code): StandardIndicator
+    private function createIndicator(string $code, ?StandardCategory $category = null): StandardIndicator
     {
-        $category = StandardCategory::query()->firstOrCreate(
+        $category ??= StandardCategory::query()->firstOrCreate(
             ['code' => 'STD'],
             ['name' => 'Standar', 'description' => null],
         );

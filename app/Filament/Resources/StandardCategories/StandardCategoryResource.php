@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class StandardCategoryResource extends Resource
@@ -43,6 +44,11 @@ class StandardCategoryResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return StandardCategoryForm::configure($schema);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('parent');
     }
 
     public static function table(Table $table): Table

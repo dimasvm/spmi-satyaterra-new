@@ -39,11 +39,19 @@ class StandardIndicatorsTable
     {
         $columns = [
             TextColumn::make('statement')
-                ->label('Pernyataan')
+                ->label('Pernyataan Indikator')
                 ->description(fn ($record) => $record->code, 'above')
-                ->description(fn ($record) => $record->qualityStandard->name)
+                ->description(fn ($record) => trim(implode(' ・ ', array_filter([
+                    $record->qualityStandard?->name,
+                    $record->standardStatement?->code,
+                ]))))
                 ->wrap()
                 ->searchable(),
+            TextColumn::make('standardStatement.statement')
+                ->label('Pernyataan Standar')
+                ->limit(70)
+                ->wrap()
+                ->toggleable(),
             TextColumn::make('target_value')
                 ->label('Target')
                 ->badge()
@@ -97,6 +105,12 @@ class StandardIndicatorsTable
                     ->preload(),
             );
         }
+
+        $filters[] = SelectFilter::make('standard_statement_id')
+            ->label('Pernyataan Standar')
+            ->relationship('standardStatement', 'code')
+            ->searchable()
+            ->preload();
 
         $table = $table
             ->columns($columns)

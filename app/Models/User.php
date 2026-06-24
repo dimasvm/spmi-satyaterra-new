@@ -156,6 +156,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasRole('admin_lpm');
     }
 
+    public function isPicMonitoring(): bool
+    {
+        return $this->hasRole('pic_monitoring');
+    }
+
     public function isPimpinan(): bool
     {
         return $this->hasRole('pimpinan');
@@ -173,7 +178,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessUnit(int|string|null $unitId): bool
     {
-        if ($this->isSuperAdmin() || $this->isAdminLpm() || $this->isPimpinan()) {
+        if ($this->isSuperAdmin() || $this->isAdminLpm() || $this->isPimpinan() || $this->isPicMonitoring()) {
             return true;
         }
 

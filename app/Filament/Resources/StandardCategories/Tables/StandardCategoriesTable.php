@@ -23,6 +23,11 @@ class StandardCategoriesTable
                     ->label('Kode')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('parent.name')
+                    ->label('Kategori Utama')
+                    ->placeholder('Kategori utama')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
                     ->label('Nama')
                     ->searchable()
@@ -61,7 +66,7 @@ class StandardCategoriesTable
                         ->modalHeading('Ubah Kategori Standar')
                         ->schema(StandardCategoryForm::components()),
                     DeleteAction::make()
-                        ->hidden(fn (StandardCategory $record): bool => $record->qualityStandards()->exists()),
+                        ->hidden(fn (StandardCategory $record): bool => $record->isInUse()),
                 ]);
         } else {
             $table->recordActions([
@@ -71,7 +76,7 @@ class StandardCategoriesTable
 
         return $table
             ->checkIfRecordIsSelectableUsing(
-                fn (StandardCategory $record): bool => ! $record->qualityStandards()->exists(),
+                fn (StandardCategory $record): bool => ! $record->isInUse(),
             )
             ->toolbarActions([
                 BulkActionGroup::make([

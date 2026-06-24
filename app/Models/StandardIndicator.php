@@ -15,6 +15,7 @@ class StandardIndicator extends Model
 
     protected $fillable = [
         'quality_standard_id',
+        'standard_statement_id',
         'code',
         'statement',
         'indicator_type',
@@ -34,9 +35,29 @@ class StandardIndicator extends Model
         'evidence_required' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $indicator): void {
+            if ($indicator->standard_statement_id === null) {
+                return;
+            }
+
+            $statement = StandardStatement::query()->find($indicator->standard_statement_id);
+
+            if ($statement !== null) {
+                $indicator->quality_standard_id = $statement->quality_standard_id;
+            }
+        });
+    }
+
     public function qualityStandard(): BelongsTo
     {
         return $this->belongsTo(QualityStandard::class);
+    }
+
+    public function standardStatement(): BelongsTo
+    {
+        return $this->belongsTo(StandardStatement::class);
     }
 
     public function units()

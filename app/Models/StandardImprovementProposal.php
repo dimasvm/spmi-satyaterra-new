@@ -206,6 +206,8 @@ class StandardImprovementProposal extends Model
             'spmi_period_id' => $this->target_spmi_period_id,
             'code' => $this->nextStandardCode(),
             'name' => $this->proposed_standard_name ?: $this->title,
+            'scope_type' => $this->qualityStandard?->scope_type?->value,
+            'statement' => $this->proposed_change,
             'description' => $this->proposed_standard_description ?: $this->proposed_change,
             'status' => QualityStandardStatus::Draft,
             'version' => 1,
@@ -213,11 +215,16 @@ class StandardImprovementProposal extends Model
 
         $this->forceFill(['created_standard_id' => $standard->id])->save();
 
+        $statement = $this->defaultStandardStatement($standard, $this->proposed_change);
+
         $this->recordRevision(
             user: $user,
             revisionType: StandardRevisionType::NewStandard,
             qualityStandard: $standard,
-            newData: $standard->only(['id', 'code', 'name', 'description', 'status', 'version']),
+            newData: array_merge(
+                $standard->only(['id', 'code', 'name', 'scope_type', 'statement', 'description', 'status', 'version']),
+                ['standard_statement_id' => $statement->id],
+            ),
         );
     }
 
@@ -229,10 +236,11 @@ class StandardImprovementProposal extends Model
             throw new RuntimeException('Standar terkait belum dipilih.');
         }
 
-        $oldData = $standard->only(['id', 'code', 'name', 'description', 'status', 'version']);
+        $oldData = $standard->only(['id', 'code', 'name', 'statement', 'description', 'status', 'version']);
 
         $standard->forceFill([
             'name' => $this->proposed_standard_name ?: $standard->name,
+            'statement' => $this->proposed_change,
             'description' => $this->proposed_standard_description ?: $this->proposed_change,
             'status' => QualityStandardStatus::Revised,
             'version' => ((int) $standard->version) + 1,
@@ -243,7 +251,7 @@ class StandardImprovementProposal extends Model
             revisionType: StandardRevisionType::StandardRevision,
             qualityStandard: $standard,
             oldData: $oldData,
-            newData: $standard->fresh()?->only(['id', 'code', 'name', 'description', 'status', 'version']),
+            newData: $standard->fresh()?->only(['id', 'code', 'name', 'statement', 'description', 'status', 'version']),
         );
     }
 
@@ -255,8 +263,11 @@ class StandardImprovementProposal extends Model
             throw new RuntimeException('Standar terkait belum dipilih.');
         }
 
+        $statement = $this->defaultStandardStatement($standard);
+
         $indicator = StandardIndicator::query()->create([
             'quality_standard_id' => $standard->id,
+            'standard_statement_id' => $statement->id,
             'code' => $this->nextIndicatorCode($standard),
             'statement' => $this->proposed_indicator_statement ?: $this->proposed_change,
             'indicator_type' => $this->proposed_target_value === null
@@ -394,6 +405,20 @@ class StandardImprovementProposal extends Model
         }
 
         return (int) $categoryId;
+    }
+
+    private function defaultStandardStatement(QualityStandard $standard, ?string $statement = null): StandardStatement
+    {
+        return StandardStatement::query()->firstOrCreate(
+            [
+                'quality_standard_id' => $standard->id,
+                'code' => 'PS-001',
+            ],
+            [
+                'statement' => $statement ?: ($standard->statement ?: ($standard->description ?: $standard->name)),
+                'sort_order' => 1,
+            ],
+        );
     }
 
     private function nextStandardCode(): string

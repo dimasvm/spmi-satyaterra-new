@@ -11,6 +11,7 @@ use App\Enums\QualityStandardStatus;
 use App\Enums\SpmiPeriodStatus;
 use App\Enums\StandardIndicatorType;
 use App\Enums\SubmissionStatus;
+use App\Enums\UnitType;
 use App\Filament\Resources\QualityStandards\Pages\EditQualityStandard;
 use App\Filament\Resources\QualityStandards\Pages\ViewQualityStandard;
 use App\Filament\Resources\QualityStandards\RelationManagers\AchievementsRelationManager;
@@ -24,6 +25,7 @@ use App\Models\QualityStandard;
 use App\Models\SpmiPeriod;
 use App\Models\StandardCategory;
 use App\Models\StandardIndicator;
+use App\Models\StandardStatement;
 use App\Models\Unit;
 use App\Models\User;
 use Filament\Actions\CreateAction;
@@ -194,6 +196,50 @@ class QualityStandardHubRelationManagersTest extends TestCase
         ]);
     }
 
+    public function test_quality_standard_form_saves_scope_and_subcategory(): void
+    {
+        $admin = $this->createRoleUser('admin_lpm', [
+            'quality-standards.view',
+            'quality-standards.update',
+        ]);
+        $parentCategory = StandardCategory::query()->create([
+            'code' => 'PDD',
+            'name' => 'Pendidikan',
+            'description' => null,
+        ]);
+        $subcategory = StandardCategory::query()->create([
+            'parent_id' => $parentCategory->id,
+            'code' => 'PDD-PRS',
+            'name' => 'Proses',
+            'description' => null,
+        ]);
+        $standard = $this->createQualityStandard();
+
+        $this->actingAs($admin);
+
+        Livewire::test(EditQualityStandard::class, ['record' => $standard->id])
+            ->fillForm([
+                'scope_type' => UnitType::StudyProgram->value,
+                'standard_category_id' => $subcategory->id,
+                'spmi_period_id' => $standard->spmi_period_id,
+                'code' => 'QS-EDIT',
+                'name' => 'Standar Proses Pembelajaran',
+                'description' => 'Deskripsi standar.',
+                'status' => QualityStandardStatus::Draft->value,
+                'version' => 1,
+                'approved_by' => null,
+                'approved_at' => null,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas(QualityStandard::class, [
+            'id' => $standard->id,
+            'scope_type' => UnitType::StudyProgram->value,
+            'standard_category_id' => $subcategory->id,
+        ]);
+    }
+
     public function test_assignments_relation_manager_only_lists_assignments_for_owner_standard(): void
     {
         $admin = $this->createRoleUser('admin_lpm', [
@@ -257,10 +303,12 @@ class QualityStandardHubRelationManagersTest extends TestCase
         );
 
         return QualityStandard::query()->create([
-            'standard_category_id' => $category->id,
+            'standard_category_id' => $overrides['standard_category_id'] ?? $category->id,
+            'scope_type' => $overrides['scope_type'] ?? null,
             'spmi_period_id' => $overrides['spmi_period_id'] ?? $this->createSpmiPeriod()->id,
             'code' => $overrides['code'] ?? 'QS-001',
             'name' => $overrides['name'] ?? 'Standar Mutu',
+            'statement' => $overrides['statement'] ?? null,
             'description' => $overrides['description'] ?? null,
             'status' => $overrides['status'] ?? QualityStandardStatus::Draft,
             'version' => $overrides['version'] ?? 1,
@@ -271,8 +319,11 @@ class QualityStandardHubRelationManagersTest extends TestCase
 
     private function createIndicator(QualityStandard $standard, string $code): StandardIndicator
     {
+        $statement = $this->createStandardStatement($standard);
+
         return StandardIndicator::query()->create([
             'quality_standard_id' => $standard->id,
+            'standard_statement_id' => $statement->id,
             'code' => $code,
             'statement' => "Pernyataan {$code}",
             'indicator_type' => StandardIndicatorType::Percentage,
@@ -282,6 +333,20 @@ class QualityStandardHubRelationManagersTest extends TestCase
             'weight' => 1,
             'evidence_required' => true,
         ]);
+    }
+
+    private function createStandardStatement(QualityStandard $standard): StandardStatement
+    {
+        return StandardStatement::query()->firstOrCreate(
+            [
+                'quality_standard_id' => $standard->id,
+                'code' => 'PS-001',
+            ],
+            [
+                'statement' => 'Pernyataan standar mutu.',
+                'sort_order' => 1,
+            ],
+        );
     }
 
     private function createAssignment(StandardIndicator $indicator, Unit $unit): IndicatorUnitAssignment

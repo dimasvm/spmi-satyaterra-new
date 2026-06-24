@@ -6,6 +6,7 @@ use App\Enums\StandardIndicatorType;
 use App\Enums\TargetOperator;
 use App\Models\QualityStandard;
 use App\Models\StandardIndicator;
+use App\Models\StandardStatement;
 use Illuminate\Database\Seeder;
 
 class StandardIndicatorSeeder extends Seeder
@@ -19,6 +20,17 @@ class StandardIndicatorSeeder extends Seeder
             ->orderBy('code')
             ->get()
             ->each(function (QualityStandard $standard): void {
+                $statement = StandardStatement::query()->firstOrCreate(
+                    [
+                        'quality_standard_id' => $standard->id,
+                        'code' => 'PS-001',
+                    ],
+                    [
+                        'statement' => $standard->statement ?: ($standard->description ?: $standard->name),
+                        'sort_order' => 1,
+                    ],
+                );
+
                 foreach (range(1, 20) as $number) {
                     $indicator = $this->indicatorPayload($standard, $number);
 
@@ -28,6 +40,7 @@ class StandardIndicatorSeeder extends Seeder
                             'code' => $indicator['code'],
                         ],
                         [
+                            'standard_statement_id' => $statement->id,
                             'statement' => $indicator['statement'],
                             'indicator_type' => $indicator['indicator_type'],
                             'target_value' => $indicator['target_value'],

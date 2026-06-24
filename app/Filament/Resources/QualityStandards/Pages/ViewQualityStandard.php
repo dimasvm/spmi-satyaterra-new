@@ -17,6 +17,7 @@ use App\Models\QualityDocument;
 use App\Models\QualityStandard;
 use App\Models\StandardIndicator;
 use App\Models\StandardRevisionHistory;
+use App\Models\StandardStatement;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -42,6 +43,7 @@ class ViewQualityStandard extends ViewRecord
     {
         return [
             ['key' => 'summary', 'label' => 'Ringkasan', 'count' => null],
+            ['key' => 'statements', 'label' => 'Pernyataan', 'count' => $this->statements()->count()],
             ['key' => 'indicators', 'label' => 'Indikator', 'count' => $this->indicators()->count()],
             ['key' => 'documents', 'label' => 'Dokumen Terkait', 'count' => $this->documents()->count()],
             ['key' => 'assignments', 'label' => 'Unit Ditugaskan', 'count' => $this->assignments()->count()],
@@ -57,6 +59,7 @@ class ViewQualityStandard extends ViewRecord
             'category',
             'spmiPeriod',
             'approver',
+            'statements',
         ]);
 
         return $record;
@@ -69,10 +72,24 @@ class ViewQualityStandard extends ViewRecord
     {
         return [
             'indicators' => $this->indicators()->count(),
+            'statements' => $this->statements()->count(),
             'documents' => $this->documents()->count(),
             'assignments' => $this->assignments()->count(),
             'achievements' => $this->achievements()->count(),
         ];
+    }
+
+    /**
+     * @return Collection<int, StandardStatement>
+     */
+    public function statements(): Collection
+    {
+        return $this->record()
+            ->statements()
+            ->withCount('indicators')
+            ->orderBy('sort_order')
+            ->orderBy('code')
+            ->get();
     }
 
     /**
@@ -82,7 +99,9 @@ class ViewQualityStandard extends ViewRecord
     {
         return $this->record()
             ->indicators()
+            ->with('standardStatement')
             ->withCount('assignments')
+            ->orderBy('standard_statement_id')
             ->orderBy('code')
             ->get();
     }

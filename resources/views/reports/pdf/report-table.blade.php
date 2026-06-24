@@ -31,6 +31,10 @@
             width: 100%;
         }
 
+        tr {
+            page-break-inside: avoid;
+        }
+
         th,
         td {
             border: 1px solid #d1d5db;

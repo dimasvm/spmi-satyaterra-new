@@ -39,7 +39,9 @@ class AchievementReviewResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        $user = auth()->user();
+
+        return (bool) ($user?->isSuperAdmin() || $user?->isAdminLpm());
     }
 
     public static function getEloquentQuery(): Builder

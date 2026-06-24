@@ -25,7 +25,11 @@
                     </p>
                 </div>
 
-                <div class="grid w-full gap-3 sm:grid-cols-2 lg:max-w-xl xl:grid-cols-4">
+                <div class="grid w-full gap-3 sm:grid-cols-2 lg:max-w-2xl xl:grid-cols-5">
+                    <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Pernyataan</div>
+                        <div class="mt-1 text-xl font-semibold text-gray-950 dark:text-white">{{ number_format($stats['statements'], 0, ',', '.') }}</div>
+                    </div>
                     <div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs text-gray-500 dark:text-gray-400">Indikator</div>
                         <div class="mt-1 text-xl font-semibold text-gray-950 dark:text-white">{{ number_format($stats['indicators'], 0, ',', '.') }}</div>
@@ -118,6 +122,30 @@
                     </div>
                 </div>
             </x-filament::section>
+        @elseif ($this->activeTab === 'statements')
+            <x-filament::section>
+                <x-slot name="heading">Pernyataan Standar</x-slot>
+
+                <div class="grid gap-4 lg:grid-cols-2">
+                    @forelse ($this->statements() as $statement)
+                        <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <x-filament::badge color="gray">{{ $statement->code }}</x-filament::badge>
+                                    <h3 class="mt-3 text-sm font-semibold leading-6 text-gray-950 dark:text-white">{{ $statement->statement }}</h3>
+                                </div>
+                                <x-filament::badge color="primary">
+                                    {{ number_format($statement->indicators_count, 0, ',', '.') }} indikator
+                                </x-filament::badge>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400 lg:col-span-2">
+                            Belum ada pernyataan standar.
+                        </div>
+                    @endforelse
+                </div>
+            </x-filament::section>
         @elseif ($this->activeTab === 'indicators')
             <x-filament::section>
                 <x-slot name="heading">Indikator Standar</x-slot>
@@ -128,6 +156,9 @@
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <x-filament::badge color="gray">{{ $indicator->code }}</x-filament::badge>
+                                    @if ($indicator->standardStatement)
+                                        <x-filament::badge color="primary">{{ $indicator->standardStatement->code }}</x-filament::badge>
+                                    @endif
                                     <h3 class="mt-3 text-sm font-semibold text-gray-950 dark:text-white">{{ $indicator->statement }}</h3>
                                 </div>
                                 <x-filament::button tag="a" :href="$this->indicatorEditUrl($indicator)" size="sm" color="gray" outlined>

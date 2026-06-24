@@ -103,7 +103,7 @@ class ReportsPage extends Page
                                     ->preload(),
                                 Select::make('standard_category_id')
                                     ->label('Kategori Standar')
-                                    ->options(fn (): array => StandardCategory::query()->orderBy('name')->pluck('name', 'id')->all())
+                                    ->options(fn (): array => StandardCategory::hierarchicalOptions())
                                     ->searchable()
                                     ->preload(),
                                 Select::make('status')

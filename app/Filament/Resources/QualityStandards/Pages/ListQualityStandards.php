@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
@@ -58,19 +59,34 @@ class ListQualityStandards extends ListRecords
                         ? ExcelFormat::XLS
                         : ExcelFormat::XLSX;
 
-                    Excel::import($importer, $file, null, $readerType);
+                    try {
+                        Excel::import($importer, $file, null, $readerType);
 
-                    Notification::make()
-                        ->title('Impor standar mutu selesai')
-                        ->body(sprintf(
-                            'Standar: %d baru, %d diperbarui. Indikator: %d baru, %d diperbarui.',
-                            $importer->getCreatedStandardsCount(),
-                            $importer->getUpdatedStandardsCount(),
-                            $importer->getCreatedIndicatorsCount(),
-                            $importer->getUpdatedIndicatorsCount(),
-                        ))
-                        ->success()
-                        ->send();
+                        Notification::make()
+                            ->title('Impor standar mutu selesai')
+                            ->body(sprintf(
+                                'Standar: %d baru, %d diperbarui. Indikator: %d baru, %d diperbarui.',
+                                $importer->getCreatedStandardsCount(),
+                                $importer->getUpdatedStandardsCount(),
+                                $importer->getCreatedIndicatorsCount(),
+                                $importer->getUpdatedIndicatorsCount(),
+                            ))
+                            ->success()
+                            ->send();
+                    } catch (ValidationException $e) {
+                        $errors = collect($e->errors())->flatten()->take(5)->implode('<br>• ');
+                        Notification::make()
+                            ->title('Validasi Impor Gagal')
+                            ->body('Periksa kembali isian file Excel Anda. Beberapa data tidak valid:<br><br>• '.$errors)
+                            ->danger()
+                            ->send();
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Impor Gagal')
+                            ->body('Terjadi kesalahan: '.$e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
                 }),
             CreateAction::make()->icon(Heroicon::Plus)->label('Tambah'),
             Action::make('manageStandardCategories')

@@ -5,10 +5,12 @@ namespace App\Filament\Imports;
 use App\Enums\QualityStandardStatus;
 use App\Enums\StandardIndicatorType;
 use App\Enums\TargetOperator;
+use App\Enums\UnitType;
 use App\Models\QualityStandard;
 use App\Models\SpmiPeriod;
 use App\Models\StandardCategory;
 use App\Models\StandardIndicator;
+use App\Models\StandardStatement;
 use App\Models\User;
 use Filament\Support\Contracts\HasLabel;
 use Illuminate\Support\Arr;
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -35,15 +38,20 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
 
     public function onRow(Row $row): void
     {
-        $this->processRow($row->toArray());
+        $this->processRow($row->toArray(), $row->getIndex());
     }
 
     /**
      * @param  array<string, mixed>  $row
      */
-    public function processRow(array $row): void
+    public function processRow(array $row, int $rowIndex = 0): void
     {
-        $data = $this->validatedData($this->normalizeRow($row));
+        try {
+            $data = $this->validatedData($this->normalizeRow($row));
+        } catch (ValidationException $e) {
+            $messages = collect($e->errors())->flatten()->map(fn ($msg) => "Baris {$rowIndex}: {$msg}")->toArray();
+            throw ValidationException::withMessages(['file' => $messages]);
+        }
 
         DB::transaction(function () use ($data): void {
             $category = $this->resolveStandardCategory($data);
@@ -58,9 +66,11 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
 
             $standard->fill([
                 'standard_category_id' => $category->getKey(),
+                'scope_type' => $data['scope_type'],
                 'spmi_period_id' => $spmiPeriodId,
                 'code' => $data['standard_code'],
                 'name' => $data['standard_name'],
+                'statement' => $data['standard_statement'],
                 'description' => $data['standard_description'],
                 'status' => $data['standard_status'],
                 'version' => $data['standard_version'],
@@ -68,6 +78,8 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
 
             $standard->exists ? $this->updatedStandardsCount++ : $this->createdStandardsCount++;
             $standard->save();
+
+            $statement = $this->resolveStandardStatement($standard, $data);
 
             $indicator = StandardIndicator::query()->firstOrNew([
                 'quality_standard_id' => $standard->getKey(),
@@ -77,6 +89,7 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
             $this->authorizeIndicatorImport($indicator);
 
             $indicator->fill([
+                'standard_statement_id' => $statement->getKey(),
                 'statement' => $data['indicator_statement'],
                 'indicator_type' => $data['indicator_type'],
                 'target_operator' => $data['target_operator'],
@@ -142,6 +155,11 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
             TargetOperator::GreaterThanOrEqual->value,
         );
 
+        $data['scope_type'] = $this->normalizeNullableEnumValue(
+            $data['scope_type'] ?? $data['standard_scope_type'] ?? $data['standard_scope'] ?? null,
+            UnitType::class,
+        );
+
         $data['standard_version'] = filled($data['standard_version'] ?? null) ? (int) $data['standard_version'] : 1;
         $data['target_value'] = filled($data['target_value'] ?? null) ? (float) $data['target_value'] : null;
         $data['weight'] = filled($data['weight'] ?? null) ? (int) $data['weight'] : 1;
@@ -161,7 +179,12 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
             'standard_name' => ['required', 'string', 'max:255'],
             'standard_category_code' => ['required', 'string', 'max:255'],
             'standard_category_name' => ['nullable', 'string', 'max:255'],
+            'standard_subcategory_code' => ['nullable', 'string', 'max:255'],
+            'standard_subcategory_name' => ['nullable', 'string', 'max:255'],
+            'scope_type' => ['nullable', Rule::in(Arr::pluck(UnitType::cases(), 'value'))],
             'spmi_period_name' => ['nullable', 'string', 'max:255'],
+            'standard_statement_code' => ['nullable', 'string', 'max:255'],
+            'standard_statement' => ['nullable', 'string'],
             'standard_description' => ['nullable', 'string'],
             'standard_status' => ['required', Rule::in(Arr::pluck(QualityStandardStatus::cases(), 'value'))],
             'standard_version' => ['required', 'integer', 'min:1'],
@@ -178,7 +201,12 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
 
         return array_replace([
             'standard_category_name' => null,
+            'standard_subcategory_code' => null,
+            'standard_subcategory_name' => null,
+            'scope_type' => null,
             'spmi_period_name' => null,
+            'standard_statement_code' => 'PS-001',
+            'standard_statement' => null,
             'standard_description' => null,
             'target_value' => null,
             'target_unit' => null,
@@ -204,7 +232,77 @@ class QualityStandardImporter implements OnEachRow, SkipsEmptyRows, WithHeadingR
             $category->update(['name' => $data['standard_category_name']]);
         }
 
-        return $category;
+        if (blank($data['standard_subcategory_code'] ?? null)) {
+            return $category;
+        }
+
+        $subcategory = StandardCategory::query()->firstOrCreate(
+            ['code' => $data['standard_subcategory_code']],
+            [
+                'parent_id' => $category->getKey(),
+                'name' => filled($data['standard_subcategory_name'] ?? null)
+                    ? $data['standard_subcategory_name']
+                    : $data['standard_subcategory_code'],
+            ],
+        );
+
+        $updates = [];
+
+        if ((int) $subcategory->parent_id !== (int) $category->getKey()) {
+            $updates['parent_id'] = $category->getKey();
+        }
+
+        if (filled($data['standard_subcategory_name'] ?? null) && $subcategory->name !== $data['standard_subcategory_name']) {
+            $updates['name'] = $data['standard_subcategory_name'];
+        }
+
+        if ($updates !== []) {
+            $subcategory->update($updates);
+        }
+
+        return $subcategory;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function resolveStandardStatement(QualityStandard $standard, array $data): StandardStatement
+    {
+        $statementCode = filled($data['standard_statement_code'] ?? null)
+            ? $data['standard_statement_code']
+            : 'PS-001';
+
+        return StandardStatement::query()->updateOrCreate(
+            [
+                'quality_standard_id' => $standard->getKey(),
+                'code' => $statementCode,
+            ],
+            [
+                'statement' => $data['standard_statement'] ?: ($standard->description ?: $standard->name),
+                'sort_order' => $this->statementSortOrder($statementCode),
+            ],
+        );
+    }
+
+    private function statementSortOrder(string $statementCode): int
+    {
+        if (preg_match('/(\d+)$/', $statementCode, $matches) === 1) {
+            return max(1, (int) $matches[1]);
+        }
+
+        return 1;
+    }
+
+    /**
+     * @param  class-string<\BackedEnum&HasLabel>  $enum
+     */
+    private function normalizeNullableEnumValue(mixed $state, string $enum): ?string
+    {
+        if (blank($state)) {
+            return null;
+        }
+
+        return $this->normalizeEnumValue($state, $enum, '');
     }
 
     /**

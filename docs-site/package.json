@@ -1,0 +1,19 @@
+{
+  "name": "spmi-docs",
+  "private": true,
+  "scripts": {
+    "dev": "docusaurus start --host 0.0.0.0 --port 3000",
+    "build": "docusaurus build --out-dir ../public/docs",
+    "serve": "docusaurus serve --dir ../public/docs",
+    "clear": "docusaurus clear"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.8.1",
+    "@docusaurus/preset-classic": "^3.8.1",
+    "@mdx-js/react": "^3.1.0",
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

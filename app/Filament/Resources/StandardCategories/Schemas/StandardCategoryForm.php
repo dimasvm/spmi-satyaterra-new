@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\StandardCategories\Schemas;
 
+use App\Models\StandardCategory;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -20,6 +22,15 @@ class StandardCategoryForm
         return [
             Section::make('Informasi Kategori')
                 ->schema([
+                    Select::make('parent_id')
+                        ->label('Parent Kategori')
+                        ->options(fn (?StandardCategory $record): array => StandardCategory::parentOptions($record?->getKey()))
+                        ->searchable()
+                        ->preload()
+                        ->placeholder('Kategori utama')
+                        ->helperText('Kosongkan untuk kategori utama. Isi untuk membuat subkategori.')
+                        ->visible(fn (?StandardCategory $record): bool => ! ($record?->children()->exists() ?? false))
+                        ->columnSpanFull(),
                     TextInput::make('code')
                         ->label('Kode')
                         ->required()

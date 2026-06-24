@@ -87,4 +87,22 @@ class Unit extends Model
     {
         $query->where('is_active', false);
     }
+
+    /**
+     * Get all descendant IDs for this unit (including itself if specified).
+     *
+     * @return array<int>
+     */
+    public function getAllDescendantIds(bool $includeSelf = true): array
+    {
+        $ids = $includeSelf ? [$this->id] : [];
+        $childrenIds = self::where('parent_id', $this->id)->pluck('id')->toArray();
+
+        while (! empty($childrenIds)) {
+            $ids = array_merge($ids, $childrenIds);
+            $childrenIds = self::whereIn('parent_id', $childrenIds)->pluck('id')->toArray();
+        }
+
+        return array_unique($ids);
+    }
 }

@@ -21,7 +21,10 @@ class IndicatorsRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->components(StandardIndicatorForm::components(includeQualityStandard: false));
+            ->components(StandardIndicatorForm::components(
+                includeQualityStandard: false,
+                qualityStandardId: (int) $this->getOwnerRecord()->getKey(),
+            ));
     }
 
     public function table(Table $table): Table

@@ -14,6 +14,8 @@ use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ManageStandardCategoriesTableTest extends TestCase
@@ -26,13 +28,17 @@ class ManageStandardCategoriesTableTest extends TestCase
 
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        $this->actingAs(User::factory()->create());
+        $role = Role::findOrCreate('admin_lpm', 'web');
+        $role->givePermissionTo(Permission::findOrCreate('quality-standards.view', 'web'));
+
+        $this->actingAs(User::factory()->create()->assignRole($role));
     }
 
     public function test_quality_standards_list_has_manage_standard_categories_header_action(): void
     {
         Livewire::test(ListQualityStandards::class)
-            ->assertActionExists('manageStandardCategories');
+            ->assertOk()
+            ->assertSee('Kategori Standar');
     }
 
     public function test_it_can_list_standard_categories(): void
@@ -60,6 +66,30 @@ class ManageStandardCategoriesTableTest extends TestCase
         $this->assertDatabaseHas(StandardCategory::class, [
             'code' => 'EDU',
             'name' => 'Pendidikan',
+        ]);
+    }
+
+    public function test_it_can_create_standard_subcategory_under_parent_category(): void
+    {
+        $parent = StandardCategory::query()->create([
+            'code' => 'PDD',
+            'name' => 'Pendidikan',
+            'description' => null,
+        ]);
+
+        Livewire::test('manage-standard-categories-table')
+            ->callAction(TestAction::make(CreateAction::class)->table(), [
+                'parent_id' => $parent->id,
+                'code' => 'PDD-MSK',
+                'name' => 'Masukan',
+                'description' => 'Subkategori masukan pendidikan.',
+            ])
+            ->assertHasNoActionErrors();
+
+        $this->assertDatabaseHas(StandardCategory::class, [
+            'parent_id' => $parent->id,
+            'code' => 'PDD-MSK',
+            'name' => 'Masukan',
         ]);
     }
 
@@ -116,5 +146,24 @@ class ManageStandardCategoriesTableTest extends TestCase
 
         Livewire::test('manage-standard-categories-table')
             ->assertActionHidden(TestAction::make(DeleteAction::class)->table($category));
+    }
+
+    public function test_delete_action_is_hidden_for_parent_category_with_children(): void
+    {
+        $parent = StandardCategory::query()->create([
+            'code' => 'PDD',
+            'name' => 'Pendidikan',
+            'description' => null,
+        ]);
+
+        StandardCategory::query()->create([
+            'parent_id' => $parent->id,
+            'code' => 'PDD-PRS',
+            'name' => 'Proses',
+            'description' => null,
+        ]);
+
+        Livewire::test('manage-standard-categories-table')
+            ->assertActionHidden(TestAction::make(DeleteAction::class)->table($parent));
     }
 }

@@ -3,6 +3,9 @@
 namespace App\Filament\Resources\QualityStandards\Schemas;
 
 use App\Enums\QualityStandardStatus;
+use App\Enums\UnitType;
+use App\Models\QualityStandard;
+use App\Models\StandardCategory;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -22,9 +25,15 @@ class QualityStandardForm
                     ->tabs([
                         Tab::make('Informasi Standar')
                             ->schema([
+                                Select::make('scope_type')
+                                    ->label('Level/Cakupan')
+                                    ->options(static::scopeTypeOptions())
+                                    ->searchable()
+                                    ->preload()
+                                    ->columnSpan(1),
                                 Select::make('standard_category_id')
-                                    ->label('Kategori')
-                                    ->relationship('category', 'name')
+                                    ->label('Kategori/Subkategori')
+                                    ->options(fn (?QualityStandard $record): array => StandardCategory::optionsForStandards($record?->standard_category_id))
                                     ->required()
                                     ->searchable()
                                     ->preload()
@@ -80,5 +89,19 @@ class QualityStandardForm
                             ->columns(2),
                     ]),
             ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function scopeTypeOptions(): array
+    {
+        return [
+            UnitType::University->value => UnitType::University->getLabel(),
+            UnitType::Faculty->value => UnitType::Faculty->getLabel(),
+            UnitType::StudyProgram->value => UnitType::StudyProgram->getLabel(),
+            UnitType::Institution->value => UnitType::Institution->getLabel(),
+            UnitType::Bureau->value => UnitType::Bureau->getLabel(),
+        ];
     }
 }

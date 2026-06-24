@@ -6,12 +6,14 @@ use App\Enums\QualityStandardStatus;
 use App\Enums\SpmiPeriodStatus;
 use App\Enums\StandardIndicatorType;
 use App\Enums\TargetOperator;
+use App\Enums\UnitType;
 use App\Filament\Imports\QualityStandardImporter;
 use App\Filament\Resources\QualityStandards\Pages\ListQualityStandards;
 use App\Models\QualityStandard;
 use App\Models\SpmiPeriod;
 use App\Models\StandardCategory;
 use App\Models\StandardIndicator;
+use App\Models\StandardStatement;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,7 +50,11 @@ class QualityStandardImporterTest extends TestCase
             'standard_name' => 'Standar Kompetensi Lulusan',
             'standard_category_code' => 'SKL',
             'standard_category_name' => 'Standar Kompetensi',
+            'standard_subcategory_code' => 'SKL-LRN',
+            'standard_subcategory_name' => 'Luaran',
+            'scope_type' => 'Program Studi',
             'spmi_period_name' => $period->name,
+            'standard_statement' => 'Program studi menetapkan capaian pembelajaran lulusan.',
             'standard_description' => 'Standar lulusan.',
             'standard_status' => 'Aktif',
             'standard_version' => '2',
@@ -68,18 +74,38 @@ class QualityStandardImporterTest extends TestCase
             'name' => 'Standar Kompetensi',
         ]);
 
+        $category = StandardCategory::query()->where('code', 'SKL')->firstOrFail();
+
+        $this->assertDatabaseHas(StandardCategory::class, [
+            'parent_id' => $category->id,
+            'code' => 'SKL-LRN',
+            'name' => 'Luaran',
+        ]);
+
         $this->assertDatabaseHas(QualityStandard::class, [
             'code' => 'STD-001',
             'name' => 'Standar Kompetensi Lulusan',
             'spmi_period_id' => $period->id,
+            'scope_type' => UnitType::StudyProgram->value,
             'status' => QualityStandardStatus::Active->value,
             'version' => 2,
         ]);
 
         $standard = QualityStandard::query()->where('code', 'STD-001')->firstOrFail();
+        $statement = StandardStatement::query()
+            ->where('quality_standard_id', $standard->id)
+            ->where('code', 'PS-001')
+            ->firstOrFail();
+
+        $this->assertDatabaseHas(StandardStatement::class, [
+            'id' => $statement->id,
+            'quality_standard_id' => $standard->id,
+            'statement' => 'Program studi menetapkan capaian pembelajaran lulusan.',
+        ]);
 
         $this->assertDatabaseHas(StandardIndicator::class, [
             'quality_standard_id' => $standard->id,
+            'standard_statement_id' => $statement->id,
             'code' => 'IKU-001',
             'statement' => 'Persentase lulusan tepat waktu.',
             'indicator_type' => StandardIndicatorType::Percentage->value,

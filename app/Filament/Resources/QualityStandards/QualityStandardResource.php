@@ -10,6 +10,7 @@ use App\Filament\Resources\QualityStandards\RelationManagers\AchievementsRelatio
 use App\Filament\Resources\QualityStandards\RelationManagers\AssignmentsRelationManager;
 use App\Filament\Resources\QualityStandards\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\QualityStandards\RelationManagers\IndicatorsRelationManager;
+use App\Filament\Resources\QualityStandards\RelationManagers\StatementsRelationManager;
 use App\Filament\Resources\QualityStandards\Schemas\QualityStandardForm;
 use App\Filament\Resources\QualityStandards\Schemas\QualityStandardInfolist;
 use App\Filament\Resources\QualityStandards\Tables\QualityStandardsTable;
@@ -52,8 +53,8 @@ class QualityStandardResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['category', 'spmiPeriod', 'approver'])
-            ->withCount(['indicators', 'documents', 'assignments']);
+            ->with(['category.parent', 'spmiPeriod', 'approver'])
+            ->withCount(['statements', 'indicators', 'documents', 'assignments']);
     }
 
     public static function canViewAny(): bool
@@ -94,6 +95,7 @@ class QualityStandardResource extends Resource
     public static function getRelations(): array
     {
         return [
+            StatementsRelationManager::class,
             IndicatorsRelationManager::class,
             DocumentsRelationManager::class,
             AssignmentsRelationManager::class,

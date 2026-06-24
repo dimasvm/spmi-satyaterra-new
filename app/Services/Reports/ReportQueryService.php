@@ -266,7 +266,7 @@ class ReportQueryService
             ->with([
                 'assignment.spmiPeriod',
                 'assignment.unit',
-                'assignment.standardIndicator.qualityStandard.category',
+                'assignment.standardIndicator.qualityStandard.category.parent',
                 'latestReview',
             ])
             ->withCount('evidences');
@@ -276,7 +276,7 @@ class ReportQueryService
         return $query
             ->when($filters['spmi_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('assignment', fn (Builder $assignmentQuery): Builder => $assignmentQuery->where('spmi_period_id', $id)))
             ->when($filters['unit_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('assignment', fn (Builder $assignmentQuery): Builder => $assignmentQuery->where('unit_id', $this->authorizedUnitId((int) $id))))
-            ->when($filters['standard_category_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('assignment.standardIndicator.qualityStandard', fn (Builder $standardQuery): Builder => $standardQuery->where('standard_category_id', $id)))
+            ->when($filters['standard_category_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('assignment.standardIndicator.qualityStandard', fn (Builder $standardQuery): Builder => $standardQuery->forStandardCategory($id)))
             ->when($filters['status'] ?? null, fn (Builder $query, string $status): Builder => $query->where('submission_status', $status))
             ->when($filters['date_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '>=', $date))
             ->when($filters['date_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date))
@@ -315,7 +315,7 @@ class ReportQueryService
         return $query
             ->when($filters['ami_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('audit', fn (Builder $auditQuery): Builder => $auditQuery->where('ami_period_id', $id)))
             ->when($filters['unit_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('audit', fn (Builder $auditQuery): Builder => $auditQuery->where('auditee_unit_id', $this->authorizedUnitId((int) $id))))
-            ->when($filters['standard_category_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('standardIndicator.qualityStandard', fn (Builder $standardQuery): Builder => $standardQuery->where('standard_category_id', $id)))
+            ->when($filters['standard_category_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('standardIndicator.qualityStandard', fn (Builder $standardQuery): Builder => $standardQuery->forStandardCategory($id)))
             ->when($filters['status'] ?? null, fn (Builder $query, string $status): Builder => $query->where('status', $status))
             ->when($filters['date_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('due_date', '>=', $date))
             ->when($filters['date_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('due_date', '<=', $date))
@@ -388,7 +388,7 @@ class ReportQueryService
             ->when($filters['spmi_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->where('target_spmi_period_id', $id))
             ->when($filters['ami_period_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('managementReview', fn (Builder $reviewQuery): Builder => $reviewQuery->where('ami_period_id', $id)))
             ->when($filters['unit_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('managementReview.amiPeriod.audits', fn (Builder $auditQuery): Builder => $auditQuery->where('auditee_unit_id', $this->authorizedUnitId((int) $id))))
-            ->when($filters['standard_category_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('qualityStandard', fn (Builder $standardQuery): Builder => $standardQuery->where('standard_category_id', $id)))
+            ->when($filters['standard_category_id'] ?? null, fn (Builder $query, int|string $id): Builder => $query->whereHas('qualityStandard', fn (Builder $standardQuery): Builder => $standardQuery->forStandardCategory($id)))
             ->when($filters['status'] ?? null, fn (Builder $query, string $status): Builder => $query->where('status', $status))
             ->when($filters['date_from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '>=', $date))
             ->when($filters['date_until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date))

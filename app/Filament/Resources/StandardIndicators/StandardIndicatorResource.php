@@ -43,7 +43,7 @@ class StandardIndicatorResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['assignments.unit', 'qualityStandard.category']);
+            ->with(['assignments.unit', 'qualityStandard.category', 'standardStatement']);
     }
 
     public static function canViewAny(): bool

@@ -22,7 +22,12 @@ class QualityStandardInfolist
                             ->columnSpan(2),
                         TextEntry::make('category.name')
                             ->label('Kategori')
+                            ->state(fn ($record): ?string => $record->category?->qualified_name)
                             ->badge(),
+                        TextEntry::make('scope_type')
+                            ->label('Level/Cakupan')
+                            ->badge()
+                            ->placeholder('-'),
                         TextEntry::make('spmiPeriod.name')
                             ->label('Periode SPMI')
                             ->placeholder('-'),

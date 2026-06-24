@@ -66,7 +66,7 @@ class AchievementsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('assignment.standardIndicator.statement')
-                    ->label('Pernyataan')
+                    ->label('Pernyataan Indikator')
                     ->wrap()
                     ->searchable(),
                 TextColumn::make('target')

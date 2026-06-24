@@ -4,11 +4,14 @@ namespace App\Filament\Resources\StandardIndicators\Schemas;
 
 use App\Enums\StandardIndicatorType;
 use App\Enums\TargetOperator;
+use App\Models\StandardStatement;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class StandardIndicatorForm
@@ -19,7 +22,7 @@ class StandardIndicatorForm
             ->components(static::components());
     }
 
-    public static function components(bool $includeQualityStandard = true): array
+    public static function components(bool $includeQualityStandard = true, ?int $qualityStandardId = null): array
     {
         $informationSchema = [
             TextInput::make('code')
@@ -27,6 +30,15 @@ class StandardIndicatorForm
                 ->required()
                 ->maxLength(255)
                 ->columnSpan(1),
+            Select::make('standard_statement_id')
+                ->label('Pernyataan Standar')
+                ->options(fn (Get $get): array => static::statementOptions(
+                    qualityStandardId: $qualityStandardId ?? (filled($get('quality_standard_id')) ? (int) $get('quality_standard_id') : null),
+                ))
+                ->required()
+                ->searchable()
+                ->preload()
+                ->columnSpanFull(),
             Select::make('indicator_type')
                 ->label('Jenis Indikator')
                 ->options(StandardIndicatorType::class)
@@ -34,7 +46,7 @@ class StandardIndicatorForm
                 ->required()
                 ->columnSpan(1),
             Textarea::make('statement')
-                ->label('Pernyataan')
+                ->label('Pernyataan Indikator')
                 ->required()
                 ->rows(4)
                 ->columnSpanFull(),
@@ -48,6 +60,8 @@ class StandardIndicatorForm
                     ->relationship('qualityStandard', 'name')
                     ->required()
                     ->searchable()
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set): mixed => $set('standard_statement_id', null))
                     ->preload()
                     ->columnSpanFull(),
             );
@@ -97,5 +111,23 @@ class StandardIndicatorForm
                 ->columns(2)
                 ->columnSpanFull(),
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function statementOptions(?int $qualityStandardId): array
+    {
+        if ($qualityStandardId === null) {
+            return [];
+        }
+
+        return StandardStatement::query()
+            ->where('quality_standard_id', $qualityStandardId)
+            ->orderBy('sort_order')
+            ->orderBy('code')
+            ->get()
+            ->mapWithKeys(fn (StandardStatement $statement): array => [$statement->id => $statement->display_name])
+            ->all();
     }
 }

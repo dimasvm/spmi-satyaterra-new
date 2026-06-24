@@ -4,7 +4,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "docs:build": "npm --prefix docs-site run build",
+        "docs:dev": "npm --prefix docs-site run dev",
+        "docs:serve": "npm --prefix docs-site run serve"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.3.0",

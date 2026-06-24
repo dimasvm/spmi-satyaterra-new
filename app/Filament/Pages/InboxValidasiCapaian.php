@@ -10,6 +10,7 @@ use App\Models\AchievementEvidence;
 use App\Models\AchievementReview;
 use App\Models\IndicatorAchievement;
 use App\Models\SpmiPeriod;
+use App\Models\Unit;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -39,6 +40,8 @@ class InboxValidasiCapaian extends Page
 
     public ?int $selectedSpmiPeriodId = null;
 
+    public ?int $selectedUnitId = null;
+
     public string $activeTab = 'submitted';
 
     public bool $isReviewModalOpen = false;
@@ -60,8 +63,14 @@ class InboxValidasiCapaian extends Page
     {
         abort_unless(static::canAccess(), 403);
 
+        $user = auth()->user();
+
         $this->selectedSpmiPeriodId = SpmiPeriod::active()->value('id')
             ?? SpmiPeriod::query()->latest('start_date')->value('id');
+
+        if ($user?->isPicMonitoring() && $user->unit_id !== null) {
+            $this->selectedUnitId = $user->unit_id;
+        }
     }
 
     /**
@@ -73,6 +82,24 @@ class InboxValidasiCapaian extends Page
             ->orderByDesc('start_date')
             ->pluck('name', 'id')
             ->all();
+    }
+
+    /**
+     * @return array<int|string, string>
+     */
+    public function unitOptions(): array
+    {
+        $query = Unit::query();
+
+        $user = auth()->user();
+
+        if ($user->unit_id !== null) {
+            $allowedUnitIds = $user->unit?->getAllDescendantIds() ?? [];
+            $query->whereIn('id', $allowedUnitIds);
+        }
+
+        return $query->orderBy('name')
+            ->pluck('name', 'id')->all();
     }
 
     /**
@@ -367,7 +394,17 @@ class InboxValidasiCapaian extends Page
 
     private function applyPeriodFilter(Builder $query): Builder
     {
-        return $query->when($this->selectedSpmiPeriodId !== null, fn (Builder $periodQuery): Builder => $periodQuery
-            ->whereHas('assignment', fn (Builder $assignmentQuery): Builder => $assignmentQuery->where('spmi_period_id', $this->selectedSpmiPeriodId)));
+        $user = auth()->user();
+
+        return $query
+            ->when($this->selectedSpmiPeriodId !== null, fn (Builder $periodQuery): Builder => $periodQuery
+                ->whereHas('assignment', fn (Builder $assignmentQuery): Builder => $assignmentQuery->where('spmi_period_id', $this->selectedSpmiPeriodId)))
+            ->when($this->selectedUnitId !== null, fn (Builder $unitQuery): Builder => $unitQuery
+                ->whereHas('assignment', fn (Builder $assignmentQuery): Builder => $assignmentQuery->where('unit_id', $this->selectedUnitId)))
+            ->when($this->selectedUnitId === null && $user?->isPicMonitoring() && $user->unit_id !== null, function (Builder $picQuery) use ($user): Builder {
+                $allowedUnitIds = $user->unit?->getAllDescendantIds() ?? [];
+
+                return $picQuery->whereHas('assignment', fn (Builder $assignmentQuery): Builder => $assignmentQuery->whereIn('unit_id', $allowedUnitIds));
+            });
     }
 }

@@ -24,17 +24,35 @@
                     </p>
                 </div>
 
-                <div class="w-full max-w-sm">
-                    <label for="spmi-period" class="text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Periode SPMI
-                    </label>
-                    <x-filament::input.wrapper class="mt-2">
-                        <x-filament::input.select id="spmi-period" wire:model.live="selectedSpmiPeriodId">
-                            @foreach ($this->periodOptions() as $id => $name)
-                                <option value="{{ $id }}">{{ $name }}</option>
-                            @endforeach
-                        </x-filament::input.select>
-                    </x-filament::input.wrapper>
+                <div class="flex w-full max-w-lg flex-col gap-3 sm:flex-row sm:items-center">
+                    <div class="flex-1">
+                        <label for="spmi-period" class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            Periode SPMI
+                        </label>
+                        <x-filament::input.wrapper class="mt-2">
+                            <x-filament::input.select id="spmi-period" wire:model.live="selectedSpmiPeriodId">
+                                @foreach ($this->periodOptions() as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
+                                @endforeach
+                            </x-filament::input.select>
+                        </x-filament::input.wrapper>
+                    </div>
+
+                    @if(auth()->user()?->isAdminLpm() || auth()->user()?->isSuperAdmin())
+                        <div class="flex-1">
+                            <label for="unit-filter" class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Unit
+                            </label>
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input.select id="unit-filter" wire:model.live="selectedUnitId">
+                                    <option value="">Semua Unit</option>
+                                    @foreach ($this->unitOptions() as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </x-filament::input.select>
+                            </x-filament::input.wrapper>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -354,7 +372,7 @@
                                 Simpan Draft
                             </x-filament::button>
                             <x-filament::button type="button" wire:click="submitAchievement">
-                                Submit ke LPM
+                                Submit
                             </x-filament::button>
                         </div>
                     </div>

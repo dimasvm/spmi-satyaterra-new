@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\QualityStandardStatus;
+use App\Enums\UnitType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,9 +17,11 @@ class QualityStandard extends Model
 
     protected $fillable = [
         'standard_category_id',
+        'scope_type',
         'spmi_period_id',
         'code',
         'name',
+        'statement',
         'description',
         'status',
         'version',
@@ -27,6 +30,7 @@ class QualityStandard extends Model
     ];
 
     protected $casts = [
+        'scope_type' => UnitType::class,
         'status' => QualityStandardStatus::class,
         'version' => 'integer',
         'approved_at' => 'datetime',
@@ -50,6 +54,11 @@ class QualityStandard extends Model
     public function indicators(): HasMany
     {
         return $this->hasMany(StandardIndicator::class);
+    }
+
+    public function statements(): HasMany
+    {
+        return $this->hasMany(StandardStatement::class);
     }
 
     public function documents(): HasMany
@@ -98,5 +107,17 @@ class QualityStandard extends Model
     public function scopeNonactive(Builder $query)
     {
         $query->whereNot('status', QualityStandardStatus::Active);
+    }
+
+    public function scopeForStandardCategory(Builder $query, int|string $categoryId): Builder
+    {
+        return $query->where(function (Builder $query) use ($categoryId): void {
+            $query
+                ->where('standard_category_id', $categoryId)
+                ->orWhereHas(
+                    'category',
+                    fn (Builder $categoryQuery): Builder => $categoryQuery->where('parent_id', $categoryId),
+                );
+        });
     }
 }

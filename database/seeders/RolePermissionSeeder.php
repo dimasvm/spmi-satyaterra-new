@@ -256,6 +256,16 @@ class RolePermissionSeeder extends Seeder
                 'notifications.view',
                 'notifications.update',
             ],
+            'pic_monitoring' => array_values(array_unique([
+                ...$permissionGroups['master'],
+                'indicator-assignments.view',
+                'indicator-achievements.view',
+                'indicator-achievements.review',
+                'achievement-evidences.view',
+                'reports.export',
+                'notifications.view',
+                'notifications.update',
+            ])),
             'viewer' => [
                 'dashboard.view',
                 'units.view',

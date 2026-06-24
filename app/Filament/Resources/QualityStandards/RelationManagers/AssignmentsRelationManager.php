@@ -59,7 +59,7 @@ class AssignmentsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('standardIndicator.statement')
-                    ->label('Pernyataan')
+                    ->label('Pernyataan Indikator')
                     ->wrap()
                     ->searchable(),
                 TextColumn::make('due_date')

@@ -1,5 +1,11 @@
 <x-filament-panels::page>
     <x-filament::section>
+        <div class="mb-6 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-900 dark:border-primary-900/50 dark:bg-primary-950/40 dark:text-primary-200">
+            Dokumentasi terbaru tersedia di
+            <a class="font-semibold underline underline-offset-4" href="{{ url('/docs/') }}" target="_blank" rel="noopener noreferrer">
+                Docusaurus
+            </a>.
+        </div>
         <div
             class="max-w-5xl space-y-5 text-sm leading-7 text-gray-700 dark:text-gray-300
                 [&_a]:font-semibold [&_a]:text-primary-600 [&_a]:underline [&_a]:underline-offset-4 dark:[&_a]:text-primary-400

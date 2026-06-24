@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\SpmiCommandCenter;
+use App\Filament\Widgets\UnitAchievementRadarChart;
 use App\Models\SpmiPeriod;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -45,6 +46,7 @@ class Dashboard extends BaseDashboard
     {
         return [
             SpmiCommandCenter::class,
+            UnitAchievementRadarChart::class,
         ];
     }
 

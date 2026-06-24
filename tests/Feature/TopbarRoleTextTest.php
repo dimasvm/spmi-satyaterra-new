@@ -42,11 +42,11 @@ class TopbarRoleTextTest extends TestCase
     public function test_it_displays_guide_icon_link_in_the_topbar(): void
     {
         $this->view('filament.topbar.guide-link', [
-            'url' => PanduanPenggunaan::getUrl(),
+            'url' => url('/docs/'),
         ])
             ->assertSee('Panduan Penggunaan')
             ->assertSee('target="_blank"', false)
-            ->assertSee(PanduanPenggunaan::getUrl(), false);
+            ->assertSee(url('/docs/'), false);
     }
 
     public function test_authenticated_user_can_open_the_usage_guide_page(): void

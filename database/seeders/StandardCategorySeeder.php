@@ -13,46 +13,68 @@ class StandardCategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            [
-                'code' => 'PDD',
+            'PDD' => [
                 'name' => 'Pendidikan',
                 'description' => 'Standar mutu terkait proses, isi, penilaian, dan capaian pembelajaran.',
             ],
-            [
-                'code' => 'PNL',
+            'PNL' => [
                 'name' => 'Penelitian',
                 'description' => 'Standar mutu terkait perencanaan, pelaksanaan, luaran, dan publikasi penelitian.',
             ],
-            [
-                'code' => 'PKM',
+            'PKM' => [
                 'name' => 'Pengabdian kepada Masyarakat',
                 'description' => 'Standar mutu terkait kegiatan pengabdian dan dampaknya bagi masyarakat.',
             ],
-            [
-                'code' => 'TKP',
+            'TKP' => [
                 'name' => 'Tata Kelola dan Kerja Sama',
                 'description' => 'Standar mutu terkait tata pamong, tata kelola, penjaminan mutu, dan kerja sama.',
             ],
-            [
-                'code' => 'SDM',
+            'SDM' => [
                 'name' => 'Sumber Daya Manusia',
                 'description' => 'Standar mutu terkait dosen dan tenaga kependidikan.',
             ],
-            [
-                'code' => 'SAR',
+            'SAR' => [
                 'name' => 'Sarana dan Prasarana',
                 'description' => 'Standar mutu terkait ketersediaan dan kelayakan sarana prasarana.',
             ],
         ];
 
-        foreach ($categories as $category) {
-            StandardCategory::updateOrCreate(
-                ['code' => $category['code']],
+        foreach ($categories as $code => $category) {
+            $parent = StandardCategory::updateOrCreate(
+                ['code' => $code],
                 [
+                    'parent_id' => null,
                     'name' => $category['name'],
                     'description' => $category['description'],
                 ],
             );
+
+            if (! in_array($code, ['PDD', 'PNL', 'PKM'], true)) {
+                continue;
+            }
+
+            foreach ($this->subcategories($code) as $subcategoryCode => $subcategoryName) {
+                StandardCategory::updateOrCreate(
+                    ['code' => $subcategoryCode],
+                    [
+                        'parent_id' => $parent->id,
+                        'name' => $subcategoryName,
+                        'description' => "Subkategori {$subcategoryName} untuk {$parent->name}.",
+                    ],
+                );
+            }
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function subcategories(string $parentCode): array
+    {
+        return [
+            "{$parentCode}-MSK" => 'Masukan',
+            "{$parentCode}-PRS" => 'Proses',
+            "{$parentCode}-LRN" => 'Luaran',
+        ];
     }
 }

@@ -53,6 +53,10 @@ class ReportExportController extends Controller
     {
         abort_unless(class_exists(Pdf::class), 404, 'Package PDF belum tersedia.');
 
+        // Increase memory limit and execution time to prevent memory exhaustion during PDF generation
+        ini_set('memory_limit', '512M');
+        set_time_limit(120);
+
         return Pdf::loadView($type->pdfView(), [
             'title' => $type->getLabel(),
             'headings' => $reports->headings($type),

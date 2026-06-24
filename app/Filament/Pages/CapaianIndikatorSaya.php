@@ -13,6 +13,7 @@ use App\Models\IndicatorAchievement;
 use App\Models\IndicatorUnitAssignment;
 use App\Models\SpmiPeriod;
 use App\Models\StandardIndicator;
+use App\Models\Unit;
 use App\Models\User;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -46,6 +47,8 @@ class CapaianIndikatorSaya extends Page
     protected ?string $heading = '';
 
     public ?int $selectedSpmiPeriodId = null;
+
+    public ?int $selectedUnitId = null;
 
     public string $activeTab = 'all';
 
@@ -92,6 +95,23 @@ class CapaianIndikatorSaya extends Page
     {
         return SpmiPeriod::query()
             ->orderByDesc('start_date')
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    /**
+     * @return array<int|string, string>
+     */
+    public function unitOptions(): array
+    {
+        $user = auth()->user();
+
+        if ($user && $user->isUnitPic() && $user->unit_id !== null && ! ($user->isAdminLpm() || $user->isSuperAdmin())) {
+            return Unit::whereKey($user->unit_id)->pluck('name', 'id')->all();
+        }
+
+        return Unit::query()
+            ->orderBy('name')
             ->pluck('name', 'id')
             ->all();
     }
@@ -327,7 +347,7 @@ class CapaianIndikatorSaya extends Page
         }
 
         if ($user->isAdminLpm() || $user->isSuperAdmin()) {
-            return $query;
+            return $query->when($this->selectedUnitId !== null, fn (Builder $unitQuery): Builder => $unitQuery->where('unit_id', $this->selectedUnitId));
         }
 
         if ($user->isUnitPic() && $user->unit_id !== null) {
@@ -353,6 +373,10 @@ class CapaianIndikatorSaya extends Page
         }
 
         if ($user->isAdminLpm() || $user->isSuperAdmin()) {
+            if ($this->selectedUnitId !== null) {
+                return Unit::find($this->selectedUnitId)?->name ?? 'Semua Unit';
+            }
+
             return 'Semua Unit';
         }
 

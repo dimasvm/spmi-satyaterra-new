@@ -12,6 +12,7 @@ use App\Models\QualityStandard;
 use App\Models\SpmiPeriod;
 use App\Models\StandardCategory;
 use App\Models\StandardIndicator;
+use App\Models\StandardStatement;
 use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Actions\Testing\TestAction;
@@ -56,9 +57,11 @@ class QualityStandardIndicatorsRelationManagerTest extends TestCase
     public function test_indicators_relation_manager_lists_related_indicators(): void
     {
         $qualityStandard = $this->createQualityStandard();
+        $statement = $this->createStandardStatement($qualityStandard);
 
         $indicator = StandardIndicator::query()->create([
             'quality_standard_id' => $qualityStandard->id,
+            'standard_statement_id' => $statement->id,
             'code' => 'IKU-001',
             'statement' => 'Persentase capaian indikator.',
             'indicator_type' => StandardIndicatorType::Percentage,
@@ -81,6 +84,7 @@ class QualityStandardIndicatorsRelationManagerTest extends TestCase
     public function test_indicators_relation_manager_can_create_related_indicator(): void
     {
         $qualityStandard = $this->createQualityStandard();
+        $statement = $this->createStandardStatement($qualityStandard);
 
         Livewire::test(IndicatorsRelationManager::class, [
             'ownerRecord' => $qualityStandard,
@@ -88,6 +92,7 @@ class QualityStandardIndicatorsRelationManagerTest extends TestCase
         ])
             ->callAction(TestAction::make(CreateAction::class)->table(), [
                 'code' => 'IKU-002',
+                'standard_statement_id' => $statement->id,
                 'statement' => 'Jumlah dokumen mutu tersedia.',
                 'indicator_type' => StandardIndicatorType::Number->value,
                 'target_value' => 5,
@@ -101,6 +106,7 @@ class QualityStandardIndicatorsRelationManagerTest extends TestCase
 
         $this->assertDatabaseHas(StandardIndicator::class, [
             'quality_standard_id' => $qualityStandard->id,
+            'standard_statement_id' => $statement->id,
             'code' => 'IKU-002',
             'statement' => 'Jumlah dokumen mutu tersedia.',
         ]);
@@ -121,6 +127,16 @@ class QualityStandardIndicatorsRelationManagerTest extends TestCase
             'name' => 'Standar Mutu 001',
             'status' => QualityStandardStatus::Draft,
             'version' => 1,
+        ]);
+    }
+
+    private function createStandardStatement(QualityStandard $qualityStandard): StandardStatement
+    {
+        return StandardStatement::query()->create([
+            'quality_standard_id' => $qualityStandard->id,
+            'code' => 'PS-001',
+            'statement' => 'Pernyataan standar mutu.',
+            'sort_order' => 1,
         ]);
     }
 

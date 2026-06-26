@@ -5,10 +5,13 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\SpmiCommandCenter;
 use App\Filament\Widgets\UnitAchievementRadarChart;
 use App\Models\SpmiPeriod;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends BaseDashboard
@@ -16,6 +19,32 @@ class Dashboard extends BaseDashboard
     use HasFiltersForm;
 
     protected static ?string $title = 'Dashboard SPMI';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            ActionGroup::make([
+                Action::make('export_pdf')
+                    ->label('Laporan Monitoring Pelaksanaan')
+                    ->icon(Heroicon::OutlinedDocumentArrowDown)
+                    ->url(fn () => route('dashboard.export-pdf', [
+                        'spmi_period_id' => $this->filters['spmi_period_id'] ?? null,
+                    ]))
+                    ->openUrlInNewTab(),
+                Action::make('export_efektivitas_pdf')
+                    ->label('Laporan Efektivitas Siklus PPEPP V2')
+                    ->icon(Heroicon::OutlinedDocumentText)
+                    ->url(fn () => route('dashboard.export-efektivitas-pdf', [
+                        'spmi_period_id' => $this->filters['spmi_period_id'] ?? null,
+                    ]))
+                    ->openUrlInNewTab(),
+            ])
+                ->label('Ekspor PDF')
+                ->icon(Heroicon::OutlinedDocumentArrowDown)
+                ->color('danger')
+                ->button(),
+        ];
+    }
 
     public static function canAccess(): bool
     {

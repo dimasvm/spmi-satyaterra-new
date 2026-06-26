@@ -103,7 +103,7 @@ class IndicatorAchievementsTable
                 SelectFilter::make('submission_status')
                     ->label('Status Submit')
                     ->options(SubmissionStatus::class),
-            ], layout: FiltersLayout::AboveContentCollapsible)
+            ], layout: FiltersLayout::AboveContent)
             ->emptyStateHeading('Belum ada capaian indikator')
             ->emptyStateDescription('Capaian akan tersedia setelah indikator ditugaskan ke unit pada periode SPMI.')
             ->emptyStateIcon(Heroicon::OutlinedArrowTrendingUp)

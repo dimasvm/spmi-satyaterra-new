@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'pddikti' => [
+        'base_url' => env('PDDIKTI_BASE_URL', 'https://api-pddikti.kemdiktisaintek.go.id'),
+        'api_key' => env('PDDIKTI_API_KEY'),
+    ],
+
 ];

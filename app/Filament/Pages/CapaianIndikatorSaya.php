@@ -13,6 +13,7 @@ use App\Models\IndicatorAchievement;
 use App\Models\IndicatorUnitAssignment;
 use App\Models\SpmiPeriod;
 use App\Models\StandardIndicator;
+use App\Models\SystemSetting;
 use App\Models\Unit;
 use App\Models\User;
 use BackedEnum;
@@ -248,8 +249,10 @@ class CapaianIndikatorSaya extends Page
 
         $this->persistAchievement(SubmissionStatus::Submitted);
 
+        $validationRequired = (bool) SystemSetting::get('achievement_validation_required', true);
+
         Notification::make()
-            ->title('Capaian indikator dikirim ke LPM.')
+            ->title($validationRequired ? 'Capaian indikator dikirim ke LPM.' : 'Capaian indikator berhasil disimpan.')
             ->success()
             ->send();
 
@@ -443,6 +446,12 @@ class CapaianIndikatorSaya extends Page
         $assignment = $this->currentAssignment();
         $achievementStatus = $this->resolveAchievementStatus($assignment->standardIndicator);
 
+        $validationRequired = (bool) SystemSetting::get('achievement_validation_required', true);
+
+        if (! $validationRequired && $submissionStatus === SubmissionStatus::Submitted) {
+            $submissionStatus = SubmissionStatus::Validated;
+        }
+
         DB::transaction(function () use ($achievement, $assignment, $achievementStatus, $submissionStatus): void {
             $achievement->update([
                 'realization_value' => filled($this->realizationValue) ? $this->realizationValue : null,
@@ -450,16 +459,18 @@ class CapaianIndikatorSaya extends Page
                 'achievement_status' => $achievementStatus,
                 'notes' => $this->notes,
                 'submission_status' => $submissionStatus,
-                'submitted_at' => $submissionStatus === SubmissionStatus::Submitted ? now() : $achievement->submitted_at,
-                'submitted_by' => $submissionStatus === SubmissionStatus::Submitted ? auth()->id() : $achievement->submitted_by,
+                'submitted_at' => ($submissionStatus === SubmissionStatus::Submitted || $submissionStatus === SubmissionStatus::Validated) ? now() : $achievement->submitted_at,
+                'submitted_by' => ($submissionStatus === SubmissionStatus::Submitted || $submissionStatus === SubmissionStatus::Validated) ? auth()->id() : $achievement->submitted_by,
             ]);
 
             $this->persistEvidence($achievement);
 
             $assignment->update([
-                'status' => $submissionStatus === SubmissionStatus::Submitted
-                    ? IndicatorAssignmentStatus::Submitted
-                    : IndicatorAssignmentStatus::InProgress,
+                'status' => match ($submissionStatus) {
+                    SubmissionStatus::Submitted => IndicatorAssignmentStatus::Submitted,
+                    SubmissionStatus::Validated => IndicatorAssignmentStatus::Validated,
+                    default => IndicatorAssignmentStatus::InProgress,
+                },
             ]);
 
             if ($submissionStatus === SubmissionStatus::Submitted) {

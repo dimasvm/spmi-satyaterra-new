@@ -16,90 +16,435 @@ class StandardIndicatorSeeder extends Seeder
      */
     public function run(): void
     {
-        QualityStandard::query()
-            ->orderBy('code')
-            ->get()
-            ->each(function (QualityStandard $standard): void {
-                $statement = StandardStatement::query()->firstOrCreate(
+        $indicators = [
+            'PDD-01' => [
+                [
+                    'code' => 'PDD-01-IK-01',
+                    'statement' => 'Tersedianya standar kompetensi lulusan.',
+                    'statement_code' => 'PDD-01-PS-01',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-02',
+                    'statement' => 'Tersedianya dokumen panduan penetapan profil lulusan dan CPL program studi.',
+                    'statement_code' => 'PDD-01-PS-01',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-03',
+                    'statement' => 'Persentase ketercapaian standar kompetensi lulusan >= 85%.',
+                    'statement_code' => 'PDD-01-PS-02',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 85.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 5,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-04',
+                    'statement' => 'Persentase lulusan TS-2 program diploma tiga/sarjana terapan/sarjana yang memperoleh pekerjaan pertama kurang dari sama dengan 6 bulan >= 25%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 25.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-05',
+                    'statement' => 'Persentase lulusan TS-2 program diploma tiga/sarjana terapan/sarjana yang memperoleh pekerjaan pertama kurang dari sama dengan 1 tahun <= 50%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 50.00,
+                    'target_operator' => TargetOperator::LessThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-06',
+                    'statement' => 'Persentase lulusan program diploma tiga/sarjana terapan/sarjana yang mendapatkan pekerjaan pertama sesuai dengan bidang keahlian >= 70%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 70.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-07',
+                    'statement' => 'Persentase lulusan program diploma tiga yang berwirausaha >= 0,1%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 0.10,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-08',
+                    'statement' => 'Persentase lulusan program sarjana/sarjana terapan yang berwirausaha >= 5%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 5.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-09',
+                    'statement' => 'Persentase lulusan program diploma tiga/sarjana terapan/sarjana yang bekerja di badan usaha tingkat multi nasional/internasional >= 5%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 5.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-10',
+                    'statement' => 'Persentase lulusan program diploma tiga/sarjana terapan/sarjana yang bekerja di badan usaha tingkat nasional >= 20%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 20.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-11',
+                    'statement' => 'Persentase lulusan program diploma tiga/sarjana terapan/sarjana yang memperoleh gaji pertama sekurang-kurangnya 1,2 kali UMP >= 50%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 50.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-12',
+                    'statement' => 'Persentase lulusan program diploma tiga/sarjana terapan/sarjana yang memperoleh gaji pertama kurang dari 1,2 kali UMP <= 50%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 50.00,
+                    'target_operator' => TargetOperator::LessThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-13',
+                    'statement' => 'Persentase lulusan program diploma tiga yang studi lanjut >= 0,1%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 0.10,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-14',
+                    'statement' => 'Persentase lulusan program sarjana/sarjana terapan yang studi lanjut >= 10%.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 10.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-15',
+                    'statement' => 'Tersedianya lembaga bahasa yang bekerjasama untuk melakukan asesmen TOEFL.',
+                    'statement_code' => 'PDD-01-PS-08',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-16',
+                    'statement' => 'Tersedianya lembaga sertifikasi profesi (LSP) untuk menunjang kompetensi lulusan.',
+                    'statement_code' => 'PDD-01-PS-09',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-17',
+                    'statement' => 'Tersedianya sistem informasi tracer study di tingkat universitas.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-18',
+                    'statement' => 'Persentase lulusan TS-2 yang terlacak >= 85% per tahun.',
+                    'statement_code' => 'PDD-01-PS-05',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 85.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-19',
+                    'statement' => 'Jumlah program studi yang telah memiliki rumusan profil lulusan dan CPL 100%.',
+                    'statement_code' => 'PDD-01-PS-01',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 100.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-20',
+                    'statement' => 'Persentase penurunan lulusan Sarjana/Sarjana Terapan/Diploma Tiga per tahun <= 20%.',
+                    'statement_code' => 'PDD-01-PS-07',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 20.00,
+                    'target_operator' => TargetOperator::LessThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-21',
+                    'statement' => 'Tersedianya jadwal pelaksanaan asesmen TOEFL.',
+                    'statement_code' => 'PDD-01-PS-08',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-22',
+                    'statement' => 'Tersedianya informasi dan jadwal sertifikasi kompetensi untuk mahasiswa.',
+                    'statement_code' => 'PDD-01-PS-09',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-23',
+                    'statement' => 'Tersedianya dokumen laporan penetapan profil lulusan dan CPL Program Studi.',
+                    'statement_code' => 'PDD-01-PS-06',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-24',
+                    'statement' => 'Tersedianya dokumen hasil Monitoring dan Evaluasi profil lulusan dan CPL program studi setiap 4 – 5 tahun.',
+                    'statement_code' => 'PDD-01-PS-06',
+                    'indicator_type' => StandardIndicatorType::Boolean,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => 'ya/tidak',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah salinan dokumen pendukung resmi yang telah disahkan.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-25',
+                    'statement' => 'Persentase kelulusan tepat waktu mahasiswa program Diploma Tiga >= 50%.',
+                    'statement_code' => 'PDD-01-PS-11',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 50.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-26',
+                    'statement' => 'Persentase kelulusan tepat waktu mahasiswa program Sarjana/Sarjana Terapan/Magister/Doktor >= 30%.',
+                    'statement_code' => 'PDD-01-PS-11',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 30.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-27',
+                    'statement' => 'Persentase kelulusan mahasiswa program Sarjana/Sarjana Terapan dengan waktu 1,5 kali masa tempuh kurikulum >= 20%.',
+                    'statement_code' => 'PDD-01-PS-11',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 20.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-28',
+                    'statement' => 'Persentase kelulusan mahasiswa program Diploma Tiga/Sarjana/Sarjana Terapan/Magister/Doktor dengan waktu dua kali masa tempuh kurikulum <= 50%.',
+                    'statement_code' => 'PDD-01-PS-11',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 50.00,
+                    'target_operator' => TargetOperator::LessThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-29',
+                    'statement' => 'Persentase lulusan yang memiliki sertifikasi Bahasa Inggris dengan minimum TOEFL sesuai jenjang pendidikan sebesar 100%.',
+                    'statement_code' => 'PDD-01-PS-03',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 100.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => '%',
+                    'weight' => 5,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-30',
+                    'statement' => 'Persentase lulusan program diploma tiga/sarjana terapan/sarjana yang memiliki sertifikat kompetensi tingkat nasional sesuai bidang keahliannya sebesar 100%.',
+                    'statement_code' => 'PDD-01-PS-04',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 100.00,
+                    'target_operator' => TargetOperator::Equal,
+                    'target_unit' => '%',
+                    'weight' => 5,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-31',
+                    'statement' => 'Persentase lulusan program Diploma Tiga/Sarjana Terapan/Sarjana yang memiliki sertifikat internasional >= 0,1%.',
+                    'statement_code' => 'PDD-01-PS-13',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 0.10,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 3,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+                [
+                    'code' => 'PDD-01-IK-32',
+                    'statement' => 'Persentase Dosen membimbing mahasiswa mendapatkan sertifikat internasional >= 1%.',
+                    'statement_code' => 'PDD-01-PS-13',
+                    'indicator_type' => StandardIndicatorType::Percentage,
+                    'target_value' => 1.00,
+                    'target_operator' => TargetOperator::GreaterThanOrEqual,
+                    'target_unit' => '%',
+                    'weight' => 4,
+                    'evidence_required' => true,
+                    'evidence_description' => 'Unggah laporan rekapitulasi data dan statistik resmi dari unit/lembaga terkait.',
+                ],
+            ],
+        ];
+
+        foreach ($indicators as $standardCode => $indicatorList) {
+            $standard = QualityStandard::where('code', $standardCode)->first();
+            if ($standard === null) {
+                continue;
+            }
+
+            $seededCodes = [];
+            foreach ($indicatorList as $ind) {
+                $statement = StandardStatement::where('quality_standard_id', $standard->id)
+                    ->where('code', $ind['statement_code'])
+                    ->first();
+
+                if ($statement === null) {
+                    continue;
+                }
+
+                StandardIndicator::updateOrCreate(
                     [
                         'quality_standard_id' => $standard->id,
-                        'code' => 'PS-001',
+                        'code' => $ind['code'],
                     ],
                     [
-                        'statement' => $standard->statement ?: ($standard->description ?: $standard->name),
-                        'sort_order' => 1,
-                    ],
+                        'standard_statement_id' => $statement->id,
+                        'statement' => $ind['statement'],
+                        'indicator_type' => $ind['indicator_type']->value,
+                        'target_value' => $ind['target_value'],
+                        'target_operator' => $ind['target_operator']->value,
+                        'target_unit' => $ind['target_unit'],
+                        'weight' => $ind['weight'],
+                        'evidence_required' => $ind['evidence_required'],
+                        'evidence_description' => $ind['evidence_description'],
+                    ]
                 );
+                $seededCodes[] = $ind['code'];
+            }
 
-                foreach (range(1, 20) as $number) {
-                    $indicator = $this->indicatorPayload($standard, $number);
-
-                    StandardIndicator::updateOrCreate(
-                        [
-                            'quality_standard_id' => $standard->id,
-                            'code' => $indicator['code'],
-                        ],
-                        [
-                            'standard_statement_id' => $statement->id,
-                            'statement' => $indicator['statement'],
-                            'indicator_type' => $indicator['indicator_type'],
-                            'target_value' => $indicator['target_value'],
-                            'target_operator' => $indicator['target_operator'],
-                            'target_unit' => $indicator['target_unit'],
-                            'weight' => $indicator['weight'],
-                            'evidence_required' => $indicator['evidence_required'],
-                            'evidence_description' => $indicator['evidence_description'],
-                        ],
-                    );
-                }
-            });
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function indicatorPayload(QualityStandard $standard, int $number): array
-    {
-        $types = [
-            StandardIndicatorType::Percentage,
-            StandardIndicatorType::Number,
-            StandardIndicatorType::Checklist,
-            StandardIndicatorType::Boolean,
-            StandardIndicatorType::Text,
-        ];
-
-        $type = $types[($number - 1) % count($types)];
-        $targetValue = match ($type) {
-            StandardIndicatorType::Percentage => 70 + (($number * 3) % 26),
-            StandardIndicatorType::Number => 1 + (($number * 2) % 12),
-            StandardIndicatorType::Checklist, StandardIndicatorType::Boolean => 1,
-            StandardIndicatorType::Text => 1,
-        };
-        $targetUnit = match ($type) {
-            StandardIndicatorType::Percentage => '%',
-            StandardIndicatorType::Number => $number % 2 === 0 ? 'dokumen' : 'kegiatan',
-            StandardIndicatorType::Checklist => 'checklist',
-            StandardIndicatorType::Boolean => 'ya/tidak',
-            StandardIndicatorType::Text => 'narasi',
-        };
-
-        return [
-            'code' => sprintf('%s-IKU-%02d', $standard->code, $number),
-            'statement' => sprintf(
-                'Indikator %02d untuk %s: unit memiliki bukti pelaksanaan, monitoring, evaluasi, dan tindak lanjut yang terdokumentasi.',
-                $number,
-                $standard->name,
-            ),
-            'indicator_type' => $type->value,
-            'target_value' => $targetValue,
-            'target_operator' => $number % 4 === 0 ? TargetOperator::Equal->value : TargetOperator::GreaterThanOrEqual->value,
-            'target_unit' => $targetUnit,
-            'weight' => 1 + ($number % 5),
-            'evidence_required' => $number % 5 !== 0,
-            'evidence_description' => sprintf(
-                'Unggah dokumen pendukung indikator %02d, seperti SK, laporan, rekap, berita acara, foto kegiatan, atau tautan folder bukti.',
-                $number,
-            ),
-        ];
+            // Cleanup indicators not in this seeder list for this standard
+            StandardIndicator::where('quality_standard_id', $standard->id)
+                ->whereNotIn('code', $seededCodes)
+                ->delete();
+        }
     }
 }

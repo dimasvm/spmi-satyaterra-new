@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             QualityDocumentDemoSeeder::class,
             IndicatorWorkflowDemoSeeder::class,
             AmiWorkflowDemoSeeder::class,
+            CampusProfileSeeder::class,
         ]);
     }
 }

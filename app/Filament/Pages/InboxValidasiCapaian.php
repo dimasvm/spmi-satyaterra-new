@@ -10,6 +10,7 @@ use App\Models\AchievementEvidence;
 use App\Models\AchievementReview;
 use App\Models\IndicatorAchievement;
 use App\Models\SpmiPeriod;
+use App\Models\SystemSetting;
 use App\Models\Unit;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -70,6 +71,11 @@ class InboxValidasiCapaian extends Page
 
         if ($user?->isPicMonitoring() && $user->unit_id !== null) {
             $this->selectedUnitId = $user->unit_id;
+        }
+
+        $validationRequired = (bool) SystemSetting::get('achievement_validation_required', true);
+        if (! $validationRequired) {
+            $this->activeTab = 'validated';
         }
     }
 
@@ -298,6 +304,9 @@ class InboxValidasiCapaian extends Page
         string $successTitle,
     ): void {
         abort_unless(static::canAccess(), 403);
+
+        $validationRequired = (bool) SystemSetting::get('achievement_validation_required', true);
+        abort_unless($validationRequired, 403, 'Validasi dinonaktifkan.');
 
         $rules = ['reviewNotes' => ['nullable', 'string', 'max:1000']];
 

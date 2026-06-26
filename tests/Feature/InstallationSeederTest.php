@@ -26,7 +26,7 @@ class InstallationSeederTest extends TestCase
     {
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertSame(6, Role::query()->count());
+        $this->assertSame(7, Role::query()->count());
         $this->assertSame(10, Unit::query()->count());
         $this->assertSame(22, User::query()->count());
 
@@ -37,9 +37,9 @@ class InstallationSeederTest extends TestCase
         $this->assertSame(10, User::role('unit_pic')->count());
         $this->assertSame(1, User::role('viewer')->count());
 
-        $this->assertSame(10, QualityStandard::query()->count());
-        $this->assertSame(200, StandardIndicator::query()->count());
-        $this->assertSame(40, QualityDocument::query()->count());
+        $this->assertSame(1, QualityStandard::query()->count());
+        $this->assertSame(32, StandardIndicator::query()->count());
+        $this->assertSame(7, QualityDocument::query()->count());
         $this->assertTrue(
             QualityStandard::query()
                 ->whereDoesntHave('indicators')
@@ -48,17 +48,17 @@ class InstallationSeederTest extends TestCase
         $this->assertTrue(
             QualityStandard::query()
                 ->get()
-                ->every(fn (QualityStandard $standard): bool => $standard->indicators()->count() === 20
-                    && $standard->documents()->count() === 4),
+                ->every(fn (QualityStandard $standard): bool => $standard->indicators()->count() === 32
+                    && $standard->documents()->count() === 7),
         );
 
-        $this->assertSame(500, IndicatorUnitAssignment::query()->count());
-        $this->assertSame(300, IndicatorAchievement::query()->count());
+        $this->assertSame(50, IndicatorUnitAssignment::query()->count());
+        $this->assertSame(30, IndicatorAchievement::query()->count());
 
         $this->assertSame(5, AmiAudit::query()->count());
-        $this->assertSame(60, AmiChecklist::query()->count());
-        $this->assertSame(40, AmiFinding::query()->count());
-        $this->assertSame(40, CorrectiveAction::query()->count());
+        $this->assertSame(25, AmiChecklist::query()->count());
+        $this->assertSame(15, AmiFinding::query()->count());
+        $this->assertSame(15, CorrectiveAction::query()->count());
 
         $this->assertDatabaseHas('corrective_actions', ['status' => 'draft']);
         $this->assertDatabaseHas('corrective_actions', ['status' => 'submitted']);

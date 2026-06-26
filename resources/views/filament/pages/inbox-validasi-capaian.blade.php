@@ -6,6 +6,7 @@
         $reviewingAchievement = $this->reviewingAchievement();
         $reviewingAssignment = $reviewingAchievement?->assignment;
         $reviewingIndicator = $reviewingAssignment?->standardIndicator;
+        $validationRequired = (bool) \App\Models\SystemSetting::get('achievement_validation_required', true);
     @endphp
 
     <div class="space-y-6">
@@ -164,7 +165,7 @@
                         </div>
 
                         <x-filament::button type="button" wire:click="openReview({{ $achievement->id }})">
-                            Validasi
+                            {{ $validationRequired ? 'Validasi' : 'Detail' }}
                         </x-filament::button>
                     </div>
                 </div>
@@ -295,6 +296,7 @@
                                 </div>
                             </div>
 
+                            @if ($validationRequired)
                             <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                                 <label for="review-notes" class="text-sm font-medium text-gray-700 dark:text-gray-200">
                                     Catatan Validator
@@ -306,13 +308,15 @@
                                     <p class="mt-2 text-sm text-danger-600 dark:text-danger-400">{{ $message }}</p>
                                 @enderror
                             </div>
+                            @endif
                         </div>
                     </div>
 
                     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <x-filament::button type="button" color="gray" wire:click="closeReview">
-                            Batal
+                            {{ $validationRequired ? 'Batal' : 'Tutup' }}
                         </x-filament::button>
+                        @if ($validationRequired)
                         <div class="flex flex-col gap-2 sm:flex-row">
                             <x-filament::button type="button" color="danger" wire:click="rejectAchievement">
                                 Tolak
@@ -324,6 +328,7 @@
                                 Validasi
                             </x-filament::button>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>

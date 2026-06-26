@@ -145,7 +145,7 @@ class AmiWorkflowDemoSeeder extends Seeder
     private function seedCorrectiveAction(AmiFinding $finding, Unit $unit, User $admin, int $index): void
     {
         $unitPic = User::role('unit_pic')->where('unit_id', $unit->id)->first();
-        $status = match ($index % 4) {
+        $status = match ($finding->id % 4) {
             0 => CorrectiveActionStatus::Draft,
             1 => CorrectiveActionStatus::Submitted,
             2 => CorrectiveActionStatus::NeedRevision,

@@ -78,6 +78,13 @@ class AmiAuditsTable
             ->defaultSort('scheduled_date')
             ->recordActions([
                 ViewAction::make(),
+                Action::make('exportPdf')
+                    ->label('Unduh PDF')
+                    ->icon(Heroicon::OutlinedDocumentArrowDown)
+                    ->color('danger')
+                    ->url(fn (AmiAudit $record): string => route('ami-audits.export-pdf', $record))
+                    ->openUrlInNewTab()
+                    ->visible(fn (): bool => auth()->user()?->can('ami-audits.export')),
                 EditAction::make()
                     ->visible(fn (): bool => AmiAuditResource::canManageAmi()),
                 Action::make('finalize')
